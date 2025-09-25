@@ -2,6 +2,7 @@ package basecamp.zikgwan.user;
 
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
+import basecamp.zikgwan.group.Community;
 import basecamp.zikgwan.review.Review;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,4 +56,7 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "reviewee")
     private List<Review> receiveReviews = new ArrayList<>();
 
+    // 모임 과 1:N
+    @OneToMany(mappedBy = "user")
+    private List<Community> communities = new ArrayList<>();
 }
