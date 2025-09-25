@@ -44,9 +44,9 @@ public class Community extends BaseEntity {
     @Column(name = "stadium", length = 100)
     private String stadium;
 
-    @Column(name = "member_cnt", nullable = false)
+    @Column(name = "member_count", nullable = false)
     @ColumnDefault("'0'")
-    private Integer memberCnt;
+    private Integer memberCount;
 
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'ING'")
@@ -58,8 +58,9 @@ public class Community extends BaseEntity {
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
 
+    // 모임장
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "leader_id", nullable = false)
     private User user;
 
     public void setUser(User user) {
