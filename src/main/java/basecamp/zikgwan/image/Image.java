@@ -27,6 +27,7 @@ public class Image extends CreatedEntity {
     @Column(name = "image_id")
     private Long imageId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "ref_type", nullable = false)
     private ImageType imageType;
 

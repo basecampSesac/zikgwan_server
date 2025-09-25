@@ -20,11 +20,13 @@ import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Check;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Check(constraints = "price >= 0")
 @Table(name = "ticket_sales")
 public class TicketSale extends BaseEntity {
 
@@ -80,5 +82,4 @@ public class TicketSale extends BaseEntity {
         this.user = user;
     }
 
-    //TODO 티켓 가격 0이상인 조건 체크하는 함수 필요
 }

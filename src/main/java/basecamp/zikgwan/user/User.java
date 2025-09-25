@@ -1,5 +1,6 @@
 package basecamp.zikgwan.user;
 
+import basecamp.zikgwan.chat.domain.ChatRoomUser;
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
@@ -67,6 +68,10 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketSale> ticketSales = new ArrayList<>();
 
+    // 채팅 유저의 1:N
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomUser> chatRoomUsers = new ArrayList<>();
+
     /**
      * 연관관계 편의 메서드
      */
@@ -93,6 +98,16 @@ public class User extends BaseEntity {
     public void addTicketSale(TicketSale ticketSale) {
         ticketSales.add(ticketSale);
         ticketSale.setUser(this);
+    }
+
+    public void addChatRoomUser(ChatRoomUser chatRoomUser) {
+        chatRoomUsers.add(chatRoomUser);
+        chatRoomUser.setUser(this); // 양방향 동기화
+    }
+
+    public void removeChatRoomUser(ChatRoomUser chatRoomUser) {
+        chatRoomUsers.remove(chatRoomUser);
+        chatRoomUser.setUser(null);
     }
 
 }
