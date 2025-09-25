@@ -2,12 +2,15 @@ package basecamp.zikgwan.user;
 
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
-import basecamp.zikgwan.group.Community;
+import basecamp.zikgwan.community.Community;
 import basecamp.zikgwan.review.Review;
+import basecamp.zikgwan.ticketsale.TicketSale;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -49,14 +52,47 @@ public class User extends BaseEntity {
     private SaveState saveState;
 
     // 남긴 리뷰들
-    @OneToMany(mappedBy = "reviewer")
+    @OneToMany(mappedBy = "reviewer", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> writtenReviews = new ArrayList<>();
 
     // 받은 리뷰
-    @OneToMany(mappedBy = "reviewee")
+    @OneToMany(mappedBy = "reviewee", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> receiveReviews = new ArrayList<>();
 
     // 모임 과 1:N
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Community> communities = new ArrayList<>();
+
+    // 티켓 거래와 1:N
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TicketSale> ticketSales = new ArrayList<>();
+
+    /**
+     * 연관관계 편의 메서드
+     */
+
+    // 리뷰 작성자
+    public void addWrittenReview(Review review) {
+        writtenReviews.add(review);
+        review.setReviewer(this);
+    }
+
+    // 리뷰 수신자
+    public void addReceivedReview(Review review) {
+        receiveReviews.add(review);
+        review.setReviewee(this);
+    }
+
+    // 모임 등록
+    public void addCommunity(Community community) {
+        communities.add(community);
+        community.setUser(this);
+    }
+
+    // 티켓 등록
+    public void addTicketSale(TicketSale ticketSale) {
+        ticketSales.add(ticketSale);
+        ticketSale.setUser(this);
+    }
+
 }

@@ -1,4 +1,4 @@
-package basecamp.zikgwan.group.enums;
+package basecamp.zikgwan.community.enums;
 
 import lombok.Getter;
 

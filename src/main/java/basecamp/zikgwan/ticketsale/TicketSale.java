@@ -1,8 +1,9 @@
-package basecamp.zikgwan.group;
+package basecamp.zikgwan.ticketsale;
 
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
-import basecamp.zikgwan.group.enums.CommunityState;
+import basecamp.zikgwan.ticketsale.enums.Seat;
+import basecamp.zikgwan.ticketsale.enums.TicketState;
 import basecamp.zikgwan.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,43 +25,60 @@ import org.hibernate.annotations.ColumnDefault;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "community")
-public class Community extends BaseEntity {
+@Table(name = "ticket_sales")
+public class TicketSale extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "community_id")
-    private Long communityId;
+    @Column(name = "ts_id")
+    private Long tsId;
 
     @Column(name = "title", length = 100, nullable = false)
     private String title;
 
-    @Column(name = "description", nullable = true, columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "date", nullable = false)
-    private LocalDateTime date;
+    @Column(name = "price", nullable = false)
+    private Integer price;
 
-    @Column(name = "stadium", length = 100)
+    @Column(name = "game_day", nullable = false)
+    private LocalDateTime gameDay;
+
+    @Column(name = "ticket_cnt", nullable = false)
+    private Integer ticketCnt;
+
+    @Column(name = "home", length = 50, nullable = false)
+    private String home;
+
+    @Column(name = "away", length = 50, nullable = false)
+    private String away;
+
+    @Column(name = "stadium", length = 2, nullable = false)
     private String stadium;
 
-    @Column(name = "member_cnt", nullable = false)
-    @ColumnDefault("'0'")
-    private Integer memberCnt;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "adjacent_seat", length = 1, nullable = false)
+    private Seat adjacentSeat;
 
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'ING'")
     @Column(name = "state", length = 3, nullable = false)
-    private CommunityState state;
+    private TicketState state;
 
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'Y'")
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
 
+    // 사용자와 N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_ud", nullable = false)
     private User user;
 
+    public void setUser(User user) {
+        this.user = user;
+    }
 
+    //TODO 티켓 가격 0이상인 조건 체크하는 함수 필요
 }

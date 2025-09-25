@@ -58,4 +58,11 @@ public class Review extends CreatedEntity {
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
 
+    public void setReviewer(User reviewer) {
+        this.reviewer = reviewer;
+    }
+
+    public void setReviewee(User reviewee) {
+        this.reviewee = reviewee;
+    }
 }
