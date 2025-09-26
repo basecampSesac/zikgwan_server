@@ -69,7 +69,7 @@ public class User extends BaseEntity {
     private List<TicketSale> ticketSales = new ArrayList<>();
 
     // 채팅 유저의 1:N
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoomUser> chatRoomUsers = new ArrayList<>();
 
     /**
