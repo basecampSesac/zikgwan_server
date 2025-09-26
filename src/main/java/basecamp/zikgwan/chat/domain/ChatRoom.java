@@ -17,6 +17,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
@@ -36,6 +37,8 @@ public class ChatRoom extends CreatedEntity {
     @Column(name = "type", length = 1, nullable = false)
     private RoomType type;
 
+    // 인원수는 채팅방 생성시 0이며 함수를 통해 ++
+    @ColumnDefault("'0'")
     @Column(name = "user_count", nullable = false)
     private Integer userCount;
 
