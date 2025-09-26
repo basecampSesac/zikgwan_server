@@ -47,8 +47,8 @@ public class TicketSale extends BaseEntity {
     @Column(name = "game_day", nullable = false)
     private LocalDateTime gameDay;
 
-    @Column(name = "ticket_cnt", nullable = false)
-    private Integer ticketCnt;
+    @Column(name = "ticket_count", nullable = false)
+    private Integer ticketCount;
 
     @Column(name = "home", length = 50, nullable = false)
     private String home;
