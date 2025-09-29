@@ -13,13 +13,13 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
@@ -34,9 +34,10 @@ public class MatchScheduleService {
     private String url; // kbodate 요청용 url
 
     // 패턴 정의 (yyyyMMdd)
-    private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     // 오늘 포함 ±10일 간의 경기 일정을 저장
+    @Transactional
     public List<KboResponseDto> saveScheduleRange(LocalDate today) {
         List<KboResponseDto> dtos = new ArrayList<>();
 
@@ -56,7 +57,8 @@ public class MatchScheduleService {
     }
 
     // DB에 경기 일정 저장
-    private List<KboResponseDto> saveSchedule(int year, int month, int day) {
+    @Transactional
+    public List<KboResponseDto> saveSchedule(int year, int month, int day) {
 
         KboRequestDto date = KboRequestDto.builder()
                 .year(year)
@@ -86,6 +88,7 @@ public class MatchScheduleService {
     }
 
     // 경기 일정 조회
+    @Transactional(readOnly = true)
     public List<KboResponseDto> getSchedule(KboRequestDto kboRequestDto) {
         LocalDate matchDate = LocalDate.of(kboRequestDto.getYear(), kboRequestDto.getMonth(), kboRequestDto.getDay());
 
@@ -106,12 +109,11 @@ public class MatchScheduleService {
                 }).toList();
     }
 
-    @NotNull
     private List<KboResponseDto> convertToDto(List<Map<String, Object>> dayList, Map<String, Object> response) {
         return dayList.stream()
                 .map(d -> {
                     // 문자열 날짜 → LocalDate 변환
-                    LocalDate localDate = LocalDate.parse((String) d.get("date"), FORMATTER);
+                    LocalDate localDate = LocalDate.parse((String) d.get("date"), formatter);
 
                     return KboResponseDto.builder()
                             .date(localDate)
