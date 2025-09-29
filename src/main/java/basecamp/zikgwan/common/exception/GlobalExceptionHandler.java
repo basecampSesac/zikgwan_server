@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
         log.warn("잘못된 요청: {}", e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.fail("잘못된 요청입니다."));
+                .body(ApiResponse.fail(e.getMessage()));
     }
 
     // 리소스를 찾지 못했을 때
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
         log.warn("리소스 없음: {}", e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.fail("요청한 리소스를 찾을 수 없습니다."));
+                .body(ApiResponse.fail(e.getMessage()));
     }
 
     // 예상치 못한 서버 오류

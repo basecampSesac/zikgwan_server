@@ -41,9 +41,6 @@ dependencies {
 	// 유효성 검사를 위해 validation 추가
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	// WebClient 설정
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	compileOnly 'org.projectlombok:lombok'
