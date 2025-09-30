@@ -104,7 +104,7 @@ public class ChatService {
     @Transactional
     public ChatUserDto enterRoom(Long roomId, String nickname) {
 
-        // TODO 임시로 만듦 추후 밑에 주석 처리된 코드 사용
+        // TODO 임시로 만듦 추후 밑에 주석 처리된 코드 사용, userId로 nickname 찾아서 넣어주면 됨
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 //        User user = userRepository.findById(userId)
