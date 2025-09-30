@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Document(collection = "chat_message")
+@Document(collection = "chat")
 public class Chat {
 
     @Id
