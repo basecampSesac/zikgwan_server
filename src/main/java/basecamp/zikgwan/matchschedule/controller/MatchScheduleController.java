@@ -4,6 +4,7 @@ import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.matchschedule.dto.KboRequestDto;
 import basecamp.zikgwan.matchschedule.dto.KboResponseDto;
 import basecamp.zikgwan.matchschedule.service.MatchScheduleService;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,8 @@ public class MatchScheduleController {
      * 해당 날짜의 경기 일정 DB에서 조회
      */
     @PostMapping("/")
-    public ResponseEntity<ApiResponse<List<KboResponseDto>>> getSchedule(@RequestBody KboRequestDto kboRequestDto) {
+    public ResponseEntity<ApiResponse<List<KboResponseDto>>> getSchedule(
+            @RequestBody @Valid KboRequestDto kboRequestDto) {  // 유효성 검사 적용
 
         List<KboResponseDto> responseDtos = matchScheduleService.getSchedule(kboRequestDto);
 
