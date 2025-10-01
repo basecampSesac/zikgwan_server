@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -35,7 +36,7 @@ public class EmailVerification extends CreatedEntity {
     private String code;
 
     @Column(name = "expiration_time")
-    private LocalDateTime expiration_time;
+    private LocalDateTime expirationTime;
 
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'N'")
@@ -46,5 +47,19 @@ public class EmailVerification extends CreatedEntity {
     @ColumnDefault("'Y'")
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
+
+    @Builder
+    public EmailVerification(String email, String code, LocalDateTime expirationTime, Verified verified, SaveState saveState){
+        this.email= email;
+        this.code=code;
+        this.expirationTime=expirationTime;
+        this.verified = verified;
+        this.saveState=saveState;
+    }
+
+    // 인증완료시 상태업데이트
+    public void updateVerified(){
+        this.verified = Verified.Y;
+    }
 
 }
