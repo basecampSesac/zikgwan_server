@@ -4,6 +4,7 @@ import basecamp.zikgwan.chat.domain.ChatRoomUser;
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
+import basecamp.zikgwan.notification.Notification;
 import basecamp.zikgwan.review.Review;
 import basecamp.zikgwan.ticketsale.TicketSale;
 import jakarta.persistence.CascadeType;
@@ -52,13 +53,17 @@ public class User extends BaseEntity {
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
 
+    /**
+     * 양방향 연관관계 지정 (기본 단방향이라 필요 시 사용)
+     */
+
     // 남긴 리뷰들
-    @OneToMany(mappedBy = "reviewer", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> writtenReviews = new ArrayList<>();
+//    @OneToMany(mappedBy = "reviewer", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Review> writtenReviews = new ArrayList<>();
 
     // 받은 리뷰
-    @OneToMany(mappedBy = "reviewee", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> receiveReviews = new ArrayList<>();
+//    @OneToMany(mappedBy = "reviewee", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Review> receiveReviews = new ArrayList<>();
 
     // 모임 과 1:N
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -72,21 +77,25 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoomUser> chatRoomUsers = new ArrayList<>();
 
+    // 알림과 유저의 1:N
+//    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Notification> notifications = new ArrayList<>();
+
     /**
      * 연관관계 편의 메서드
      */
 
     // 리뷰 작성자
-    public void addWrittenReview(Review review) {
-        writtenReviews.add(review);
-        review.setReviewer(this);
-    }
+//    public void addWrittenReview(Review review) {
+//        writtenReviews.add(review);
+//        review.setReviewer(this);
+//    }
 
     // 리뷰 수신자
-    public void addReceivedReview(Review review) {
-        receiveReviews.add(review);
-        review.setReviewee(this);
-    }
+//    public void addReceivedReview(Review review) {
+//        receiveReviews.add(review);
+//        review.setReviewee(this);
+//    }
 
     // 모임 등록
     public void addCommunity(Community community) {
@@ -100,6 +109,13 @@ public class User extends BaseEntity {
         ticketSale.setUser(this);
     }
 
+    // 알림
+//    public void addNotification(Notification notification) {
+//        notifications.add(notification);
+//        notification.setUser(this);
+//    }
+
+    // 채팅 사용자 수 동기화
     public void addChatRoomUser(ChatRoomUser chatRoomUser) {
         chatRoomUsers.add(chatRoomUser);
         chatRoomUser.setUser(this); // 양방향 동기화
@@ -109,5 +125,6 @@ public class User extends BaseEntity {
         chatRoomUsers.remove(chatRoomUser);
         chatRoomUser.setUser(null);
     }
+
 
 }
