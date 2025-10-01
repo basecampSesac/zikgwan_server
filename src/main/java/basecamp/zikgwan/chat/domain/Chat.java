@@ -33,7 +33,7 @@ public class Chat {
     private LocalDateTime sentAt;
 
     @Builder
-    public Chat(String roomId, String sender, String message, LocalDateTime sentAt) {
+    private Chat(String roomId, String sender, String message, LocalDateTime sentAt) {
         this.roomId = roomId;
         this.sender = sender;
         this.message = message;
