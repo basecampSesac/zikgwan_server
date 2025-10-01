@@ -69,9 +69,13 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Community> communities = new ArrayList<>();
 
-    // 티켓 거래와 1:N
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TicketSale> ticketSales = new ArrayList<>();
+    // 사용자가 판매한 티켓들
+    @OneToMany(mappedBy = "seller_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TicketSale> sellingTickets = new ArrayList<>();
+
+    // 사용자가 구매한 티켓들
+    @OneToMany(mappedBy = "buyer_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TicketSale> boughtTickets = new ArrayList<>();
 
     // 채팅 유저의 1:N
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -103,10 +107,18 @@ public class User extends BaseEntity {
         community.setUser(this);
     }
 
-    // 티켓 등록
-    public void addTicketSale(TicketSale ticketSale) {
-        ticketSales.add(ticketSale);
-        ticketSale.setUser(this);
+    // 편의 메서드
+
+    // 판매자
+    public void addSellingTicket(TicketSale ticket) {
+        sellingTickets.add(ticket);
+        ticket.setSeller(this);
+    }
+
+    // 구매자
+    public void addBoughtTicket(TicketSale ticket) {
+        boughtTickets.add(ticket);
+        ticket.setBuyer(this);
     }
 
     // 알림
