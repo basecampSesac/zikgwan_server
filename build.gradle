@@ -34,9 +34,12 @@ dependencies {
 //	implementation 'org.springframework.session:spring-session-data-redis'
 
 	// 시큐리티 추후 설정
-//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//	implementation 'org.springframework.boot:spring-boot-starter-security'
-//	testImplementation 'org.springframework.security:spring-security-test'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+    implementation 'io.jsonwebtoken:jjwt:0.9.1' // 자바 JWT 라이브러리
+    implementation 'javax.xml.bind:jaxb-api:2.3.1' // XML 문서와 JAVA 객체간 매핑 자동화
 
 	// 유효성 검사를 위해 validation 추가
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -52,6 +55,9 @@ dependencies {
 
 	// 환경변수 파일
 	implementation 'io.github.cdimascio:java-dotenv:5.1.1'
+
+    //이메일 발송을 위한 설정
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('test') {
