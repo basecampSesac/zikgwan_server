@@ -73,13 +73,22 @@ public class TicketSale extends BaseEntity {
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
 
-    // 사용자와 N:1 관계
+    // 판매자와 N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_ud", nullable = false)
-    private User user;
+    @JoinColumn(name = "seller_id", nullable = false)
+    private User seller_id;
 
-    public void setUser(User user) {
-        this.user = user;
+    // 구매자와 N:1 관계
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "buyer_id", nullable = false)
+    private User buyer_id;
+
+
+    public void setSeller(User user) {
+        this.seller_id = user;
     }
 
+    public void setBuyer(User user) {
+        this.buyer_id = user;
+    }
 }
