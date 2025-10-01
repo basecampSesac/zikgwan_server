@@ -44,9 +44,10 @@ public class ChatController {
      */
     @MessageMapping("/chat.{chatRoomId}")
     public void sendMessage(@RequestBody ChatDto chatDto, @DestinationVariable Long chatRoomId) {
-        log.info("채팅 내용: {}", chatDto);
 
         chatDto.setSentAt(LocalDateTime.now());  // 현재 시간 저장
+
+        log.info("채팅 내용: {}", chatDto);
 
         chatService.saveChat(chatDto, chatRoomId);
 

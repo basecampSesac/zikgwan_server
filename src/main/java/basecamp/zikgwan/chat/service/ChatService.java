@@ -55,8 +55,8 @@ public class ChatService {
                 .userCount(c.getUserCount()).build()).collect(Collectors.toList());
     }
 
-
     // 채팅방 이름으로 채팅방 생성
+
     /// 그룹
     @Transactional
     public ChatRoomDto createCommunityRoom(String roomName) {
@@ -119,7 +119,9 @@ public class ChatService {
         }
         chatRoom.upUserCount();
 
-        ChatRoomUser chatRoomUser = ChatRoomUser.builder().build();
+        ChatRoomUser chatRoomUser = ChatRoomUser.builder()
+                .user(null)
+                .build();
 
         // 양방향 연관관계 동기화
         user.addChatRoomUser(chatRoomUser);
@@ -194,7 +196,9 @@ public class ChatService {
                 .sentAt(chatDto.getSentAt())
                 .build();
 
-        chatRepository.save(chat);
+        Chat savedChat = chatRepository.save(chat);
+
+        log.info("Service 저장된 채팅: {}", savedChat);
     }
 
 }
