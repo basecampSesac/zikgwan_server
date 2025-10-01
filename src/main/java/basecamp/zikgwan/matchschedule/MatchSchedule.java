@@ -38,7 +38,7 @@ public class MatchSchedule extends CreatedEntity {
 
     // 엔티티에서 Builder가 필요할 때 필요한 부분만 생성자로 생성하고 @Builder 어노테이션 붙임
     @Builder
-    public MatchSchedule(LocalDate matchDate, String homeTeam, String awayTeam, String stadium) {
+    private MatchSchedule(LocalDate matchDate, String homeTeam, String awayTeam, String stadium) {
         this.matchDate = matchDate;
         this.homeTeam = homeTeam;
         this.awayTeam = awayTeam;
