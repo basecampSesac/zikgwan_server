@@ -72,7 +72,7 @@ public class ChatRoom extends CreatedEntity {
     }
 
     @Builder
-    public ChatRoom(String roomName, RoomType type, Integer userCount) {
+    private ChatRoom(String roomName, RoomType type, Integer userCount) {
         this.roomName = roomName;
         this.type = type;
         this.userCount = userCount;
