@@ -139,5 +139,13 @@ public class User extends BaseEntity {
         chatRoomUser.setUser(null);
     }
 
-
+    @Builder
+    private User(Long userId, String nickname, String email, String password, String club, SaveState saveState) {
+        this.userId = userId;
+        this.nickname = nickname;
+        this.email = email;
+        this.password = password;
+        this.club = club;
+        this.saveState = saveState;
+    }
 }
