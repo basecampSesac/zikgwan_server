@@ -11,6 +11,8 @@ import basecamp.zikgwan.chat.enums.RoomType;
 import basecamp.zikgwan.chat.repository.ChatRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
+import basecamp.zikgwan.notification.dto.EventPayload;
+import basecamp.zikgwan.notification.service.SseService;
 import basecamp.zikgwan.user.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,6 +33,7 @@ public class ChatService {
     private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomUserRepository chatRoomUserRepository;
+    private final SseService sseService;
 
     // 모든 채팅방 목록 불러오기
     @Transactional(readOnly = true)
@@ -199,6 +202,24 @@ public class ChatService {
         Chat savedChat = chatRepository.save(chat);
 
         log.info("Service 저장된 채팅: {}", savedChat);
+
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
+
+        List<ChatRoomUser> chatRoomUsers = chatRoomUserRepository.findAllByChatRoom(chatRoom);
+
+        for (ChatRoomUser cru : chatRoomUsers) {
+            User receiver = cru.getUser();
+
+            // 보낸 사람은 알림 제외
+            if (!receiver.getNickname().equals(chatDto.getNickname())) {
+                sseService.broadcast(
+                        receiver.getUserId(),
+                        new EventPayload(roomId, chatDto.getMessage())
+                );
+            }
+        }
+
     }
 
 }

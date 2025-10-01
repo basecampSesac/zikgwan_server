@@ -20,4 +20,6 @@ public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Long
     // userId로 사용자가 속한 모든 채팅방 조회 (JPQL)
     @Query("SELECT cru.chatRoom FROM ChatRoomUser cru WHERE cru.user.userId = :userId")
     List<ChatRoom> findChatRoomsByUserId(@Param("userId") Long userId);
+
+    List<ChatRoomUser> findAllByChatRoom(ChatRoom chatRoom);
 }
