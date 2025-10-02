@@ -38,11 +38,31 @@ public class TeamMapper {
             Map.entry("KT", "KT")
     );
 
+    // 코드 → 한글
+    private static final Map<String, String> CODE_TO_NAME = Map.ofEntries(
+            Map.entry("OB", "두산"),
+            Map.entry("LT", "롯데"),
+            Map.entry("SS", "삼성"),
+            Map.entry("SK", "SSG"),  // SK를 2021 이후 SSG로 보여줌
+            Map.entry("HH", "한화"),
+            Map.entry("KT", "KT"),
+            Map.entry("NC", "NC"),
+            Map.entry("LG", "LG"),
+            Map.entry("HT", "기아"),
+            Map.entry("WO", "키움")
+    );
+
+    // DB 저장용 한글 -> 코드로
     public static String changeNameToId(String teamName, int year) {
         if (year >= 2021) {
             return TEAM_LIST_AFTER_2021.get(teamName);
         } else {
             return TEAM_LIST_BEFORE_2021.get(teamName);
         }
+    }
+
+    // 응답용 코드 -> 한글
+    public static String changeIdToName(String code) {
+        return CODE_TO_NAME.getOrDefault(code, code);
     }
 }
