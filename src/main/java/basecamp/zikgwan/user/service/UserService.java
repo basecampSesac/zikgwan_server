@@ -3,7 +3,7 @@ package basecamp.zikgwan.user.service;
 
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.email.service.EmailVerificationService;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

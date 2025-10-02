@@ -2,7 +2,7 @@ package basecamp.zikgwan.chat.repository;
 
 import basecamp.zikgwan.chat.domain.ChatRoom;
 import basecamp.zikgwan.chat.domain.ChatRoomUser;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

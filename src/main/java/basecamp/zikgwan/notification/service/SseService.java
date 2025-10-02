@@ -5,7 +5,7 @@ import basecamp.zikgwan.notification.Notification;
 import basecamp.zikgwan.notification.dto.EventPayload;
 import basecamp.zikgwan.notification.repository.EmitterRepository;
 import basecamp.zikgwan.notification.repository.NotificationRepository;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import java.io.IOException;
 import java.util.NoSuchElementException;

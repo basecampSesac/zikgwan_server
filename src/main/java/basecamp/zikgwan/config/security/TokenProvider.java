@@ -2,7 +2,7 @@ package basecamp.zikgwan.config.security;
 
 
 import basecamp.zikgwan.config.jwt.JwtProperties;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import java.time.Instant;

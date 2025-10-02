@@ -4,7 +4,7 @@ import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.notification.Notification;
 import basecamp.zikgwan.notification.dto.NotificationResponseDto;
 import basecamp.zikgwan.notification.repository.NotificationRepository;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
