@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MatchScheduleService {
 
     private final MatchScheduleRepository matchScheduleRepository;
@@ -41,7 +42,7 @@ public class MatchScheduleService {
     public List<KboResponseDto> saveScheduleRange(LocalDate today) {
         List<KboResponseDto> dtos = new ArrayList<>();
 
-        for (int i = -10; i <= 10; i++) {
+        for (int i = -7; i <= 7; i++) {
             LocalDate targetDate = today.plusDays(i);
 
             List<KboResponseDto> responseDtos = saveSchedule(
@@ -88,7 +89,6 @@ public class MatchScheduleService {
     }
 
     // 경기 일정 조회
-    @Transactional(readOnly = true)
     public List<KboResponseDto> getSchedule(KboRequestDto kboRequestDto) {
         LocalDate matchDate = LocalDate.of(kboRequestDto.getYear(), kboRequestDto.getMonth(), kboRequestDto.getDay());
 
@@ -102,8 +102,8 @@ public class MatchScheduleService {
                 .map(m -> {
                     return KboResponseDto.builder()
                             .date(m.getMatchDate())
-                            .home(m.getHomeTeam())
-                            .away(m.getAwayTeam())
+                            .home(TeamMapper.changeIdToName(m.getHomeTeam())) // 한글 이름으로 변환
+                            .away(TeamMapper.changeIdToName(m.getAwayTeam()))
                             .place(m.getStadium())
                             .build();
                 }).toList();

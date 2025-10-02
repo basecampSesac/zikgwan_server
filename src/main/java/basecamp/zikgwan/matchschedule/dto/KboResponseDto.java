@@ -10,7 +10,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class KboResponseDto {
     private LocalDate date;    // 경기날짜
-    private String home;    // 홈팀 코드
-    private String away;    // 어웨이팀 코드
+    private String home;    // 홈팀 이름
+    private String away;    // 어웨이팀 이름
     private String place;   // 경기장 정보
 }
