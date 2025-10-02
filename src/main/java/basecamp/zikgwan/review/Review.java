@@ -4,7 +4,7 @@ import basecamp.zikgwan.common.domain.CreatedEntity;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.review.enums.Rating;
 import basecamp.zikgwan.review.enums.ReviewType;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

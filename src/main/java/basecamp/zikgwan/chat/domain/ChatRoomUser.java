@@ -1,6 +1,6 @@
 package basecamp.zikgwan.chat.domain;
 
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

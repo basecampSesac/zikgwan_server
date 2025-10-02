@@ -13,7 +13,7 @@ import basecamp.zikgwan.chat.repository.ChatRoomRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
 import basecamp.zikgwan.notification.dto.EventPayload;
 import basecamp.zikgwan.notification.service.SseService;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;

@@ -4,7 +4,7 @@ import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.ticketsale.enums.Seat;
 import basecamp.zikgwan.ticketsale.enums.TicketState;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

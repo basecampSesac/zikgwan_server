@@ -3,7 +3,7 @@ package basecamp.zikgwan.community;
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.enums.CommunityState;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -2,7 +2,7 @@ package basecamp.zikgwan.notification.repository;
 
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.notification.Notification;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

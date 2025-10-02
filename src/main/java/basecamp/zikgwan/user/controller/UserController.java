@@ -4,7 +4,7 @@ package basecamp.zikgwan.user.controller;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.config.security.TokenProvider;
-import basecamp.zikgwan.user.User;
+import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.dto.UserRequestDto;
 import basecamp.zikgwan.user.dto.UserResponseDto;
 import basecamp.zikgwan.user.service.UserService;
