@@ -8,6 +8,7 @@ import basecamp.zikgwan.user.User;
 import basecamp.zikgwan.user.dto.UserRequestDto;
 import basecamp.zikgwan.user.dto.UserResponseDto;
 import basecamp.zikgwan.user.service.UserService;
+import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<UserResponseDto>> registerUser(@RequestBody UserRequestDto userDTO){
+    public ResponseEntity<ApiResponse<UserResponseDto>> registerUser(@RequestBody @Valid UserRequestDto userDTO){
 
 
         if (userDTO.getPassword() == null) {
@@ -79,7 +80,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@PathVariable Long id, @RequestBody UserRequestDto userDTO){
+    public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@PathVariable Long id, @RequestBody @Valid UserRequestDto userDTO){
 
         User user = User.builder()
                 .email(userDTO.getEmail())
@@ -107,7 +108,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<UserResponseDto>> userLogin(@RequestBody UserRequestDto userDTO){
+    public ResponseEntity<ApiResponse<UserResponseDto>> userLogin(@RequestBody @Valid UserRequestDto userDTO){
         User user =  userService.userLogin(
                 userDTO.getEmail(), userDTO.getPassword(), passwordEncoder
         );
