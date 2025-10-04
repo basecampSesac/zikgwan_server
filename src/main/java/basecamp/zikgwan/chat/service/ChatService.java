@@ -63,7 +63,7 @@ public class ChatService {
     /// 그룹
     @Transactional
     public ChatRoomDto createCommunityRoom(String roomName) {
-        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).userCount(0).type(RoomType.C).build();
+        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.C).build();
         chatRoomRepository.save(chatRoom);
         return ChatRoomDto.builder()
                 .roomId(chatRoom.getRoomId())
@@ -76,7 +76,7 @@ public class ChatService {
     /// 티켓 채팅방
     @Transactional
     public ChatRoomDto createTicketRoom(String roomName) {
-        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).userCount(0).type(RoomType.T).build();
+        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.T).build();
         chatRoomRepository.save(chatRoom);
         return ChatRoomDto.builder()
                 .roomId(chatRoom.getRoomId())
@@ -90,7 +90,7 @@ public class ChatService {
     @Transactional(readOnly = true)
     public List<UserInfoDto> getUsers(Long roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new EntityNotFoundException("채팅방을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
         List<User> chatUsers = chatRoom.getChatRoomUsers().stream().map(ChatRoomUser::getUser)
                 .toList();
 

@@ -53,9 +53,10 @@ public class ChatRoom extends CreatedEntity {
 
     // 인원 수 감소
     public void downUserCount() {
-        if (this.userCount > 0) {    // 음수 방지
-            this.userCount--;
+        if (this.userCount <= 0) {    // 음수 방지
+            throw new IllegalArgumentException("채팅방에 사용자가 존재하지 않습니다.");
         }
+        this.userCount--;
     }
 
     /**
@@ -72,9 +73,9 @@ public class ChatRoom extends CreatedEntity {
     }
 
     @Builder
-    private ChatRoom(String roomName, RoomType type, Integer userCount) {
+    private ChatRoom(String roomName, RoomType type) {
         this.roomName = roomName;
         this.type = type;
-        this.userCount = userCount;
+        this.userCount = 0;
     }
 }
