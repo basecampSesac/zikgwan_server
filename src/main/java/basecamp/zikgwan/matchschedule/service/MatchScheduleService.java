@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +36,7 @@ public class MatchScheduleService {
     // 패턴 정의 (yyyyMMdd)
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    // 오늘 포함 ±10일 간의 경기 일정을 저장
+    // 오늘 포함 ±7일 간의 경기 일정을 저장
     @Transactional
     public List<KboResponseDto> saveScheduleRange(LocalDate today) {
         List<KboResponseDto> dtos = new ArrayList<>();
@@ -94,8 +93,11 @@ public class MatchScheduleService {
 
         List<MatchSchedule> matchSchedules = matchScheduleRepository.findAllByMatchDate(matchDate);
 
+        // 경기 일정이 없으면 빈 리스트 반환
         if (matchSchedules.isEmpty()) {
-            throw new NoSuchElementException("경기 일정을 찾을 수 없습니다.");
+            return List.of(KboResponseDto.builder().build());
+
+//            throw new NoSuchElementException("경기 일정을 찾을 수 없습니다.");
         }
 
         return matchSchedules.stream()
