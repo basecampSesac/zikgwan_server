@@ -52,7 +52,9 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// 테스트용 DB
 	testImplementation 'com.h2database:h2'
+	testImplementation "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring3x:4.21.0"
 
 	// 환경변수 파일
 	implementation 'io.github.cdimascio:java-dotenv:5.1.1'
