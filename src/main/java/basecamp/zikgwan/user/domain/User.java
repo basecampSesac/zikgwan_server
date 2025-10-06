@@ -67,7 +67,7 @@ public class User extends BaseEntity {
 //    private List<Review> receiveReviews = new ArrayList<>();
 
     // 모임 과 1:N
-    @OneToMany(mappedBy = "leader", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Community> communities = new ArrayList<>();
 
     // 사용자가 판매한 티켓들
@@ -105,7 +105,7 @@ public class User extends BaseEntity {
     // 모임 등록
     public void addCommunity(Community community) {
         communities.add(community);
-        community.setLeader(this);
+        community.setUser(this);
     }
 
     // 편의 메서드
