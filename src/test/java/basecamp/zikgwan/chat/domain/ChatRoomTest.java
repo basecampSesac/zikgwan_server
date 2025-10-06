@@ -13,10 +13,7 @@ class ChatRoomTest {
     @Test
     void defaultUserCount() {
         // given // when
-        ChatRoom room = ChatRoom.builder()
-                .roomName("채팅방")
-                .type(RoomType.T)
-                .build();
+        ChatRoom room = createChatRoom("채팅방", RoomType.T);
 
         // then
         assertThat(room.getUserCount()).isZero();
@@ -26,10 +23,7 @@ class ChatRoomTest {
     @Test
     void upUserCount() {
         // given
-        ChatRoom room = ChatRoom.builder()
-                .roomName("채팅방")
-                .type(RoomType.T)
-                .build();
+        ChatRoom room = createChatRoom("채팅방", RoomType.T);
 
         // when
         room.upUserCount();
@@ -42,10 +36,7 @@ class ChatRoomTest {
     @Test
     void downUserCount() {
         // given
-        ChatRoom room = ChatRoom.builder()
-                .roomName("채팅방")
-                .type(RoomType.T)
-                .build();
+        ChatRoom room = createChatRoom("채팅방", RoomType.T);
         room.upUserCount();
 
         // when
@@ -60,16 +51,20 @@ class ChatRoomTest {
     @Test
     void downUserCountWithoutUser() {
         // given
-        ChatRoom room = ChatRoom.builder()
-                .roomName("채팅방")
-                .type(RoomType.T)
-                .build();
+        ChatRoom room = createChatRoom("채팅방", RoomType.T);
 
         // when //then
         assertThatThrownBy(room::downUserCount)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("채팅방에 사용자가 존재하지 않습니다.");
 
+    }
+
+    private ChatRoom createChatRoom(String roomName, RoomType roomType) {
+        return ChatRoom.builder()
+                .roomName(roomName)
+                .type(roomType)
+                .build();
     }
 
 
