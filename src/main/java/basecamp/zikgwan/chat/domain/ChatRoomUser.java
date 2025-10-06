@@ -55,7 +55,8 @@ public class ChatRoomUser {
     }
 
     @Builder
-    private ChatRoomUser(User user) {
+    private ChatRoomUser(User user, LocalDateTime joinedAt) {
         this.user = user;
+        this.joinedAt = joinedAt;
     }
 }
