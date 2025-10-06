@@ -3,6 +3,7 @@ package basecamp.zikgwan.community;
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.enums.CommunityState;
+import basecamp.zikgwan.matchschedule.MatchSchedule;
 import basecamp.zikgwan.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,12 +39,6 @@ public class Community extends BaseEntity {
     @Column(name = "description", nullable = true, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "date", nullable = false)
-    private LocalDateTime date;
-
-    @Column(name = "stadium", length = 100)
-    private String stadium;
-
     @Column(name = "member_count", nullable = false)
     @ColumnDefault("'0'")
     private Integer memberCount;
@@ -58,13 +53,18 @@ public class Community extends BaseEntity {
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
 
+    // 경기 일정
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id", nullable = false)
+    private MatchSchedule matchSchedule;
+
     // 모임장
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "leader_id", nullable = false)
-    private User user;
+    private User leader;
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setLeader(User leader) {
+        this.leader = leader;
     }
 
 }
