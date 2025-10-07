@@ -14,9 +14,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,12 +69,12 @@ public class User extends BaseEntity {
     private List<Community> communities = new ArrayList<>();
 
     // 사용자가 판매한 티켓들
-    @OneToMany(mappedBy = "seller_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "sellerId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketSale> sellingTickets = new ArrayList<>();
 
     // 사용자가 구매한 티켓들
-    @OneToMany(mappedBy = "buyer_id", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TicketSale> boughtTickets = new ArrayList<>();
+//    @OneToMany(mappedBy = "buyerId", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<TicketSale> boughtTickets = new ArrayList<>();
 
     // 채팅 유저의 1:N
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -116,11 +114,11 @@ public class User extends BaseEntity {
         ticket.setSeller(this);
     }
 
-    // 구매자
-    public void addBoughtTicket(TicketSale ticket) {
-        boughtTickets.add(ticket);
-        ticket.setBuyer(this);
-    }
+//    // 구매자
+//    public void addBoughtTicket(TicketSale ticket) {
+//        boughtTickets.add(ticket);
+//        ticket.setBuyer(this);
+//    }
 
     // 알림
 //    public void addNotification(Notification notification) {
