@@ -22,7 +22,7 @@ public class CommunityResponse {
     private Integer memberCount;
     private String stadium;
     private String team;
-    private Long leaderId;
+    private String nickname;
     private CommunityState state;
     private SaveState saveState;
     private LocalDateTime createdAt;
@@ -38,7 +38,7 @@ public class CommunityResponse {
                 .stadium(community.getStadium())
                 .team(community.getTeam())
                 .memberCount(community.getMemberCount())
-                .leaderId(community.getUser().getUserId())
+                .nickname(community.getUser().getNickname())
                 .state(community.getState())
                 .saveState(community.getSaveState())
                 .createdAt(community.getCreatedAt())
