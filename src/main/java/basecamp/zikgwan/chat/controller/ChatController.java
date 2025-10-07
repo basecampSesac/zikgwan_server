@@ -27,7 +27,7 @@ public class ChatController {
     @MessageMapping("/chat.enter.{chatRoomId}")
     public void enterUser(@RequestBody ChatDto chatDto, @DestinationVariable Long chatRoomId) {
 
-        // 사용자 채팅방 입장
+        // 사용자 채팅방 처음 입장
         chatService.enterRoom(chatRoomId, chatDto.getNickname());
 
         // 채팅방 입장 메시지 설정
@@ -49,6 +49,7 @@ public class ChatController {
 
         log.info("채팅 내용: {}", chatDto);
 
+        // 채팅 저장과 동시에 알림을 보냄
         chatService.saveChat(chatDto, chatRoomId);
 
         // 해당 주소를 구독한 클라이언트에게 전송
