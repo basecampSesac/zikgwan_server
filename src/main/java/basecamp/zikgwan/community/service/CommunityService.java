@@ -35,7 +35,8 @@ public class CommunityService {
                 .description(request.getDescription())
                 .date(request.getDate())
                 .stadium(request.getStadium())
-                .team(request.getTeam())
+                .home(request.getHome())
+                .away(request.getAway())
                 .memberCount(request.getMemberCount())
                 .user(leader)
                 .build();

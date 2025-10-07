@@ -31,8 +31,11 @@ public class CommunityRequest {
     @NotNull(message = "경기장을 선택해주세요.")
     private String stadium;
 
-    @NotNull(message = "구단을 선택해주세요.")
-    private String team;
+    @NotNull(message = "홈 구단을 선택해주세요.")
+    private String home;
+
+    @NotNull(message = "어웨이 구단을 선택해주세요.")
+    private String away;
 
     @NotNull(message = "모임 인원을 입력해주세요.")
     @Positive(message = "모임 인원은 1명 이상이어야 합니다.")
