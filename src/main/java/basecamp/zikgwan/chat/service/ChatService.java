@@ -6,6 +6,8 @@ import basecamp.zikgwan.chat.domain.ChatRoomUser;
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
 import basecamp.zikgwan.chat.dto.ChatUserDto;
+import basecamp.zikgwan.chat.dto.TicketInfoDto;
+import basecamp.zikgwan.chat.dto.TicketRoomCount;
 import basecamp.zikgwan.chat.dto.UserInfoDto;
 import basecamp.zikgwan.chat.enums.RoomType;
 import basecamp.zikgwan.chat.repository.ChatRepository;
@@ -13,14 +15,18 @@ import basecamp.zikgwan.chat.repository.ChatRoomRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
 import basecamp.zikgwan.notification.dto.EventPayload;
 import basecamp.zikgwan.notification.service.SseService;
+import basecamp.zikgwan.ticketsale.TicketSale;
+import basecamp.zikgwan.ticketsale.repository.TicketSaleRepository;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +37,7 @@ public class ChatService {
 
     private final ChatRepository chatRepository;
     private final UserRepository userRepository;
+    private final TicketSaleRepository ticketSaleRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomUserRepository chatRoomUserRepository;
     private final SseService sseService;
@@ -42,6 +49,8 @@ public class ChatService {
         return chatRooms.stream().map(c -> ChatRoomDto.builder().
                 roomId(c.getRoomId())
                 .roomName(c.getRoomName())
+                .type(c.getType())
+                .typeId(c.getTypeId())
                 .userCount(c.getUserCount()).build()).collect(Collectors.toList());
     }
 
@@ -55,6 +64,8 @@ public class ChatService {
         return rooms.stream().map(c -> ChatRoomDto.builder().
                 roomId(c.getRoomId())
                 .roomName(c.getRoomName())
+                .type(c.getType())
+                .typeId(c.getTypeId())
                 .userCount(c.getUserCount()).build()).collect(Collectors.toList());
     }
 
@@ -62,27 +73,41 @@ public class ChatService {
 
     /// 그룹
     @Transactional
-    public ChatRoomDto createCommunityRoom(String roomName) {
-        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.C).build();
+    public ChatRoomDto createCommunityRoom(Long communityId, String roomName) {
+        ChatRoom chatRoom = ChatRoom.builder()
+                .roomName(roomName)
+                .type(RoomType.C)
+                .typeId(communityId)
+                .build();
+
         chatRoomRepository.save(chatRoom);
+
         return ChatRoomDto.builder()
                 .roomId(chatRoom.getRoomId())
                 .roomName(chatRoom.getRoomName())
                 .userCount(chatRoom.getUserCount())
                 .type(chatRoom.getType())
+                .typeId(chatRoom.getTypeId())
                 .build();
     }
 
     /// 티켓 채팅방
     @Transactional
-    public ChatRoomDto createTicketRoom(String roomName) {
-        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.T).build();
+    public ChatRoomDto createTicketRoom(Long tsId, String roomName) {
+        ChatRoom chatRoom = ChatRoom.builder()
+                .roomName(roomName)
+                .type(RoomType.T)
+                .typeId(tsId)
+                .build();
+
         chatRoomRepository.save(chatRoom);
+
         return ChatRoomDto.builder()
                 .roomId(chatRoom.getRoomId())
                 .roomName(chatRoom.getRoomName())
                 .userCount(chatRoom.getUserCount())
                 .type(chatRoom.getType())
+                .typeId(chatRoom.getTypeId())
                 .build();
     }
 
@@ -91,10 +116,13 @@ public class ChatService {
     public List<UserInfoDto> getUsers(Long roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
-        List<User> chatUsers = chatRoom.getChatRoomUsers().stream().map(ChatRoomUser::getUser)
+
+        List<User> chatUsers = chatRoom.getChatRoomUsers().stream()
+                .map(ChatRoomUser::getUser)
                 .toList();
 
-        return chatUsers.stream().map(c -> UserInfoDto.builder()
+        return chatUsers.stream()
+                .map(c -> UserInfoDto.builder()
                         .email(c.getEmail())
                         .nickname(c.getNickname())
                         .build())
@@ -221,5 +249,47 @@ public class ChatService {
         }
 
     }
+
+    // 채팅 수 내림차순으로 티켓 10개 조회
+    public List<TicketInfoDto> getTicketsOrderByChatDesc() {
+
+        // 10개 제한
+        PageRequest limit = PageRequest.of(0, 10);
+
+        List<TicketRoomCount> ticketRoomCounts =
+                chatRoomRepository.findTicketSalesByChatRoomCount(RoomType.T, limit);
+
+        List<Long> tsIds = ticketRoomCounts.stream()
+                .map(TicketRoomCount::getTsId)
+                .toList();
+
+        List<TicketSale> ticketSales = ticketSaleRepository.findByTsIdIn(tsIds);
+
+        // Map으로 최적화 (tsId를 key로)
+        Map<Long, TicketSale> saleMap = ticketSales.stream()
+                .collect(Collectors.toMap(TicketSale::getTsId, ts -> ts));
+
+        return ticketRoomCounts.stream()
+                .map(c -> {
+                    TicketSale s = saleMap.get(c.getTsId());
+                    return TicketInfoDto.builder()
+                            .tsId(s.getTsId())
+                            .title(s.getTitle())
+                            .description(s.getDescription())
+                            .price(s.getPrice())
+                            .gameDay(s.getGameDay())
+                            .ticketCount(s.getTicketCount())
+                            .home(s.getHome())
+                            .away(s.getAway())
+                            .stadium(s.getStadium())
+                            .adjacentSeat(s.getAdjacentSeat())
+                            .state(s.getState())
+                            .saveState(s.getSaveState())
+                            .chatRoomCount(c.getChatRoomCount())
+                            .build();
+                })
+                .toList();
+    }
+
 
 }

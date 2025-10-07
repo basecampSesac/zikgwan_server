@@ -15,6 +15,7 @@ public class ChatRoomDto {
     private Long roomId;
     private String roomName;
     private RoomType type;
+    private Long typeId;
     private Integer userCount;
 
 }
