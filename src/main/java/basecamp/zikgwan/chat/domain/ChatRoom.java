@@ -38,6 +38,9 @@ public class ChatRoom extends CreatedEntity {
     @Column(name = "type", length = 1, nullable = false)
     private RoomType type;
 
+    @Column(name = "type_id", nullable = false)
+    private Long typeId;  // 티켓 중고거래 id 또는 모임 id
+
     // 인원수는 채팅방 생성시 0이며 함수를 통해 ++
     @ColumnDefault("'0'")
     @Column(name = "user_count", nullable = false)
@@ -73,10 +76,11 @@ public class ChatRoom extends CreatedEntity {
     }
 
     @Builder
-    private ChatRoom(Long roomId, String roomName, RoomType type) {
+    private ChatRoom(Long roomId, String roomName, RoomType type, Long typeId) {
         this.roomId = roomId;
         this.roomName = roomName;
         this.type = type;
+        this.typeId = typeId;
         this.userCount = 0;
     }
 }

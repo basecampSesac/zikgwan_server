@@ -2,6 +2,7 @@ package basecamp.zikgwan.chat.controller;
 
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
+import basecamp.zikgwan.chat.dto.TicketInfoDto;
 import basecamp.zikgwan.chat.dto.UserInfoDto;
 import basecamp.zikgwan.chat.service.ChatService;
 import basecamp.zikgwan.common.dto.ApiResponse;
@@ -66,9 +67,10 @@ public class ChatRoomController {
     /**
      * 모임 채팅방 생성
      */
-    @PostMapping("/community")
-    public ResponseEntity<ApiResponse<ChatRoomDto>> createCommunityRoom(@RequestParam String roomName) {
-        ChatRoomDto chatRoomDto = chatService.createCommunityRoom(roomName);
+    @PostMapping("/community/{communityId}")
+    public ResponseEntity<ApiResponse<ChatRoomDto>> createCommunityRoom(@PathVariable Long communityId,
+                                                                        @RequestParam String roomName) {
+        ChatRoomDto chatRoomDto = chatService.createCommunityRoom(communityId, roomName);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -78,9 +80,10 @@ public class ChatRoomController {
     /**
      * 티켓 중고거래 채팅방 생성
      */
-    @PostMapping("/ticket")
-    public ResponseEntity<ApiResponse<ChatRoomDto>> createTicketRoom(@RequestParam String roomName) {
-        ChatRoomDto chatRoomDto = chatService.createTicketRoom(roomName);
+    @PostMapping("/ticket/{tsId}")
+    public ResponseEntity<ApiResponse<ChatRoomDto>> createTicketRoom(@PathVariable Long tsId,
+                                                                     @RequestParam String roomName) {
+        ChatRoomDto chatRoomDto = chatService.createTicketRoom(tsId, roomName);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -111,6 +114,19 @@ public class ChatRoomController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(chatDtos));
+    }
+
+    /**
+     * 채팅 수 내림차순으로 티켓 10개 조회
+     */
+    @GetMapping("/chat/ticket/desc")
+    public ResponseEntity<ApiResponse<List<TicketInfoDto>>> getTicketsOrderByChatDesc() {
+
+        List<TicketInfoDto> ticketInfoDtos = chatService.getTicketsOrderByChatDesc();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(ticketInfoDtos));
     }
 
 }

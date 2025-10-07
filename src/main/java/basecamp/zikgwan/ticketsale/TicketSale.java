@@ -76,19 +76,20 @@ public class TicketSale extends BaseEntity {
     // 판매자와 N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
-    private User seller_id;
+    private User sellerId;
 
+    // 연관관계 맺으면 구매자 지정 필수가 됨
     // 구매자와 N:1 관계
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "buyer_id", nullable = false)
-    private User buyer_id;
-
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "buyer_id")
+    @Column(name = "buyer_id")
+    private Long buyerId;
 
     public void setSeller(User user) {
-        this.seller_id = user;
+        this.sellerId = user;
     }
 
-    public void setBuyer(User user) {
-        this.buyer_id = user;
-    }
+//    public void setBuyer(User user) {
+//        this.buyer_id = user;
+//    }
 }
