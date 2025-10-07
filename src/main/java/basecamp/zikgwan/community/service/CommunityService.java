@@ -6,6 +6,7 @@ import basecamp.zikgwan.community.dto.CommunityResponse;
 import basecamp.zikgwan.community.repository.CommunityRepository;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -67,9 +68,11 @@ public class CommunityService {
     // 제목, 모임 구단, 구장, 경기 날짜를 선택 입력으로 필터링하여 조회
     public List<CommunityResponse> searchCommunitiesByTitleAndTeamAndStadiumAndDate(String title, String team,
                                                                                     String stadium,
-                                                                                    LocalDateTime date) {
+                                                                                    LocalDate date) {
+        LocalDateTime datetime = date.atStartOfDay();
+
         List<Community> communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title, team,
-                stadium, date);
+                stadium, datetime, datetime.plusDays(1));
 
         return communities.stream()
                 .map(c -> CommunityResponse.from(c))
