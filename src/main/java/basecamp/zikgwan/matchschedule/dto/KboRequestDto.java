@@ -13,19 +13,19 @@ import lombok.Data;
 @Builder
 public class KboRequestDto {
 
-    @Positive
-    @NotNull
+    @Positive(message = "년도는 양수여야 합니다.")
+    @NotNull(message = "년도를 입력해주세요.")
     private int year;
 
-    @Positive
-    @Min(1)
-    @Max(12)
-    @NotNull
+    @Positive(message = "월은 양수여야 합니다.")
+    @Min(value = 1, message = "1월 미만은 입력할 수 없습니다.")
+    @Max(value = 12, message = "12월 초과는 입력할 수 없습니다.")
+    @NotNull(message = "월을 입력해주세요.")
     private int month;
 
-    @Positive
-    @Min(1)
-    @Max(31)
-    @NotNull
+    @Positive(message = "일자는 양수여야 합니다.")
+    @Min(value = 1, message = "1일 미만은 입력할 수 없습니다.")
+    @Max(value = 31, message = "31일 초과는 입력할 수 없습니다.")
+    @NotNull(message = "일자를 입력해주세요.")
     private int day;
 }
