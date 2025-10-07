@@ -4,6 +4,7 @@ package basecamp.zikgwan.email.service;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.email.EmailVerification;
 import basecamp.zikgwan.email.enums.Verified;
+import basecamp.zikgwan.email.enums.VerifiedType;
 import basecamp.zikgwan.email.repository.EmailVerificationRepository;
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -23,7 +24,7 @@ public class EmailVerificationService {
      *
      * @param email
      */
-    public void sendVerificationCode(String email) {
+    public void sendVerificationCode(String email, String verifiedType) {
         String code = String.format("%06d", new Random().nextInt(999999));
         LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
 
@@ -33,16 +34,24 @@ public class EmailVerificationService {
                 .expirationTime(expirationTime)
                 .verified(Verified.N)
                 .saveState(SaveState.Y)
+                .verifiedType(VerifiedType.valueOf(verifiedType))
                 .build();
 
         //인증요청내역 저장
         verifyRepository.save(verify);
 
+        String mailText = "";
+        if (verifiedType.equals("S")) {
+            mailText = "[회원가입]";
+        } else {
+            mailText = "[비밀번호 재설정]";
+        }
+
         // 이메일 발송
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
         message.setSubject("[직관] 이메일 인증 코드");
-        message.setText("\n\n 직관 서비스를 이용해 주셔서 감사합니다. \n 인증코드: " + code);
+        message.setText(mailText + "\n\n 직관 서비스를 이용해 주셔서 감사합니다. \n 인증코드: " + code);
         mailSender.send(message);
     }
 
@@ -53,13 +62,14 @@ public class EmailVerificationService {
      * @param code
      * @return
      */
-    public boolean verifyCode(String email, String code) {
+    public boolean verifyCode(String email, String code, String verifiedType) {
 
         //인증만료시간비교를 위한 현재시간
         LocalDateTime verifyTime = LocalDateTime.now();
 
         //이메일로 인증요청 건이 있는지  확인
-        EmailVerification verify = verifyRepository.findTopByEmailOrderByCreatedAtDesc(email)
+        EmailVerification verify = verifyRepository.findFirstByEmailAndVerifiedTypeOrderByCreatedAtDesc(email,
+                        VerifiedType.valueOf(verifiedType))
                 .orElseThrow(() -> new IllegalArgumentException("이메일 인증 요청이 없습니다."));
 
         System.out.println("입력코드 : " + code);
@@ -89,8 +99,9 @@ public class EmailVerificationService {
      * @param email
      * @return
      */
-    public boolean isVerified(String email) {
-        return verifyRepository.findTopByEmailOrderByCreatedAtDesc(email)
+    public boolean isVerified(String email, String verifiedType) {
+        return verifyRepository.findFirstByEmailAndVerifiedTypeOrderByCreatedAtDesc(email,
+                        VerifiedType.valueOf(verifiedType))
                 .map(v -> v.getVerified() == Verified.Y)
                 .orElse(false);
     }

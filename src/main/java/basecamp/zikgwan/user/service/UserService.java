@@ -6,6 +6,7 @@ import basecamp.zikgwan.config.security.TokenProvider;
 import basecamp.zikgwan.email.service.EmailVerificationService;
 import basecamp.zikgwan.user.domain.Token;
 import basecamp.zikgwan.user.domain.User;
+import basecamp.zikgwan.user.dto.UserRequestDto;
 import basecamp.zikgwan.user.dto.UserResponseDto;
 import basecamp.zikgwan.user.repository.TokenRepository;
 import basecamp.zikgwan.user.repository.UserRepository;
@@ -50,7 +51,7 @@ public class UserService {
     public User registerUser(final User user) {
 
         //유효성 검사 이메일 인증결과 확인
-        boolean result = emailVerifyService.isVerified(user.getEmail());
+        boolean result = emailVerifyService.isVerified(user.getEmail(), "S");
         if (!result) {
             throw new IllegalArgumentException("이메일 인증결과 확인이 실패하였습니다.");
         }
@@ -94,7 +95,7 @@ public class UserService {
         }
 
         if (newPassword != null && !newPassword.equals(newPasswordConfirm)) {
-            throw new IllegalArgumentException("새로운비밀번호와 새로운비밀번호 불일치");
+            throw new IllegalArgumentException("새로운비밀번호와 새로운비밀번호 확인  불일치");
         }
 
         if (!passwordEncoder.matches(user.getPassword(), chkUser.getPassword())) {
@@ -232,6 +233,41 @@ public class UserService {
         return UserResponseDto.builder().userId(tokenEntity.getUser().getUserId())
                 .email(tokenEntity.getUser().getEmail()).nickname(tokenEntity.getUser().getNickname())
                 .token(newAccessToken).refreshToken(refreshToken).build();
+
+    }
+
+    /**
+     * 비밀번호 재설정
+     *
+     * @param userDto
+     * @return
+     */
+    @Transactional
+    public User passwordReset(final UserRequestDto userDto) {
+        //유효성 검사 이메일 인증결과 확인
+        boolean result = emailVerifyService.isVerified(userDto.getEmail(), "P");
+        if (!result) {
+            throw new IllegalArgumentException("이메일 인증결과 확인이 실패하였습니다.");
+        }
+        //유효성 검사 userEntity 혹은 email 이 null 인 경우 예외 던짐
+        if (userDto.getEmail() == null) {
+            throw new RuntimeException("Invalid arguments");
+        }
+        String newPassword = userDto.getNewpassword();
+        String newPasswordConfirm = userDto.getNewpasswordconfirm();
+
+        if (newPassword != null && !newPassword.equals(newPasswordConfirm)) {
+            throw new IllegalArgumentException("새로운비밀번호와 새로운비밀번호 확인 불일치");
+        }
+
+        User user = userRepository.findByEmail(userDto.getEmail());
+        String newEncodedPassword = passwordEncoder.encode(newPassword);
+        System.out.println("newEncodedPassword : " + newEncodedPassword);
+
+        User updateuser = User.builder().club(user.getClub()).nickname(user.getNickname()).password(newEncodedPassword)
+                .saveState(SaveState.Y).email(userDto.getEmail()).userId(user.getUserId()).build();
+
+        return userRepository.save(updateuser);
 
     }
 

@@ -95,7 +95,7 @@ public class UserController {
      * @param principal
      * @return
      */
-    @PutMapping("/{id}")
+    @PutMapping("/{id:[0-9]+}")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@PathVariable Long id,
                                                                    @RequestBody @Valid UserRequestDto userDTO,
                                                                    @AuthenticationPrincipal CustomUserPrincipal principal) {
@@ -167,7 +167,7 @@ public class UserController {
      * @param principal
      * @return
      */
-    @PatchMapping("/delete/{id}")
+    @PatchMapping("/delete/{id:[0-9]+}")
     public ResponseEntity<ApiResponse<Boolean>> userDelete(@PathVariable Long id,
                                                            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
@@ -210,7 +210,7 @@ public class UserController {
      * @param principal
      * @return
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id:[0-9]+}")
     public ResponseEntity<ApiResponse<UserResponseDto>> getUserInfo(@PathVariable Long id,
                                                                     @AuthenticationPrincipal CustomUserPrincipal principal) {
         if (!id.equals(principal.getUserId())) {
@@ -238,6 +238,25 @@ public class UserController {
         UserResponseDto responseDto = userService.refreshAccessToken(refreshToken);
 
         return ResponseEntity.ok(ApiResponse.success(responseDto));
+    }
+
+    /**
+     * 사용자 비밀번호 재설정
+     *
+     * @param userDTO
+     * @return
+     */
+    @PostMapping("/pwReset")
+    public ResponseEntity<ApiResponse<UserResponseDto>> passwordReset(@RequestBody @Valid UserRequestDto userDTO) {
+
+        User updateUser = userService.passwordReset(userDTO);
+
+        UserResponseDto rsUserDTO = UserResponseDto.builder().email(updateUser.getEmail())
+                .nickname(updateUser.getNickname()).userId(updateUser.getUserId())
+                .club(updateUser.getClub()).build();
+
+        return ResponseEntity.ok(ApiResponse.success(rsUserDTO));
+
     }
 
 }
