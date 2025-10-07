@@ -3,6 +3,7 @@ package basecamp.zikgwan.email;
 import basecamp.zikgwan.common.domain.CreatedEntity;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.email.enums.Verified;
+import basecamp.zikgwan.email.enums.VerifiedType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -44,21 +45,27 @@ public class EmailVerification extends CreatedEntity {
     private Verified verified;  // 이메일 인증 여부 (완료-Y,미완료-N)
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "verified_type", nullable = false)
+    private VerifiedType verifiedType; // 이메일인증 구분(회원가입-S,비밀번호재설정-P
+
+    @Enumerated(EnumType.STRING)
     @ColumnDefault("'Y'")
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
 
     @Builder
-    public EmailVerification(String email, String code, LocalDateTime expirationTime, Verified verified, SaveState saveState){
-        this.email= email;
-        this.code=code;
-        this.expirationTime=expirationTime;
+    public EmailVerification(String email, String code, LocalDateTime expirationTime, Verified verified,
+                             SaveState saveState, VerifiedType verifiedType) {
+        this.email = email;
+        this.code = code;
+        this.expirationTime = expirationTime;
         this.verified = verified;
-        this.saveState=saveState;
+        this.saveState = saveState;
+        this.verifiedType = verifiedType;
     }
 
     // 인증완료시 상태업데이트
-    public void updateVerified(){
+    public void updateVerified() {
         this.verified = Verified.Y;
     }
 

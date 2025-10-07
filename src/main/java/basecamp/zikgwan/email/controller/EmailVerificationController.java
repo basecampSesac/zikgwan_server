@@ -30,7 +30,8 @@ public class EmailVerificationController {
      */
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<String>> sendCode(@RequestBody @Valid EmailVerificationDTO emailVerificationDTO) {
-        emailVerifyService.sendVerificationCode(emailVerificationDTO.getEmail());
+        emailVerifyService.sendVerificationCode(emailVerificationDTO.getEmail(),
+                emailVerificationDTO.getVerifiedType());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("인증 코드가 발송되었습니다."));
@@ -45,7 +46,8 @@ public class EmailVerificationController {
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<String>> verifyCode(
             @RequestBody @Valid EmailVerificationDTO emailVerificationDTO) {
-        boolean result = emailVerifyService.verifyCode(emailVerificationDTO.getEmail(), emailVerificationDTO.getCode());
+        boolean result = emailVerifyService.verifyCode(emailVerificationDTO.getEmail(), emailVerificationDTO.getCode(),
+                emailVerificationDTO.getVerifiedType());
 
         System.out.println("email : " + emailVerificationDTO.getEmail());
         System.out.println("code : " + emailVerificationDTO.getCode());
