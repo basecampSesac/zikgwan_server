@@ -42,10 +42,11 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
             "AND (:team IS NULL OR LOWER(c.home) LIKE LOWER(CONCAT('%', :team, '%'))\n " +
             "OR LOWER(c.away) LIKE LOWER(CONCAT('%', :team, '%'))) " +
             "AND (:stadium IS NULL OR c.stadium = :stadium) " +
-            "AND (:date IS NULL OR c.date = :date)")
+            "AND (:date IS NULL OR (c.date >= :date AND c.date < :datePlusOne))")
     List<Community> searchCommunitiesByTitleAndTeamAndStadiumAndDate(
             @Param("title") String title,
             @Param("team") String team,
             @Param("stadium") String stadium,
-            @Param("date") LocalDateTime date);
+            @Param("date") LocalDateTime date,
+            @Param("datePlusOne") LocalDateTime datePlusOne);
 }

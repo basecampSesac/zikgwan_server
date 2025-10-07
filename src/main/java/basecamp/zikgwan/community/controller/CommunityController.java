@@ -5,10 +5,11 @@ import basecamp.zikgwan.community.dto.CommunityRequest;
 import basecamp.zikgwan.community.dto.CommunityResponse;
 import basecamp.zikgwan.community.service.CommunityService;
 import jakarta.validation.Valid;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -92,7 +93,7 @@ public class CommunityController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String team,
             @RequestParam(required = false) String stadium,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate date
     ) {
         List<CommunityResponse> response = communityService.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
                 team, stadium, date);
