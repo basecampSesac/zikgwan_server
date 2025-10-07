@@ -34,13 +34,14 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // sesstion 기반이 아니므로 무상태(stateless)
                 /*
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/api/email/**","/api/user/**")
+                        .requestMatchers("/", "/api/email/**", "/api/user/login", "/api/user/chknickname",
+                                "/api/user/signup", "/api/match/**")
                         .permitAll() // /, /api/email/** 경로는 인증 안해도 됨
                         .anyRequest().authenticated()); // 그 이외의 모든 경로는 인증 해야됨
 
                  */
                 .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().permitAll() ); // 모든 요청 허용
+                        .anyRequest().permitAll()); // 모든 요청 허용
 
         // filter 등록 :  매 요청마다 CrosFilter를 실행한 후에 JwtAuthenticationFilter 실행
         http.addFilterAfter(jwtAuthenticationFilter, CorsFilter.class);

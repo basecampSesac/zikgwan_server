@@ -14,6 +14,7 @@ public class UserResponseDto {
     private String club;
     private Long userId;
     private String token;
+    private String refreshToken;
 
 
 }
