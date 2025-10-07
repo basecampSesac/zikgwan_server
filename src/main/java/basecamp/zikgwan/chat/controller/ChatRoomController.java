@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -91,7 +92,7 @@ public class ChatRoomController {
     }
 
     /**
-     * 채팅방 나가기
+     * 채팅방 떠나기 (아예 나감)
      */
     //TODO UserId 시큐리티 설정
     @DeleteMapping("/{roomId}/{userId}")
@@ -104,9 +105,36 @@ public class ChatRoomController {
     }
 
     /**
+     * 채팅방 들어오기, 채팅방 들어올때마다 호출
+     */
+    // TODO 시큐리티 적용 필요
+    @PatchMapping("/{roomId}/join/{userId}")
+    public ResponseEntity<ApiResponse<String>> joinRoom(@PathVariable Long roomId, @PathVariable Long userId) {
+        String message = chatService.joinRoom(roomId, userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(message));
+    }
+
+    /**
+     * 채팅방 나가기, 채팅방 나갈때마다 호출
+     */
+    // TODO 시큐리티 적용 필요
+    @PatchMapping("/exit/{userId}")
+    public ResponseEntity<ApiResponse<String>> exitRoom(@PathVariable Long userId) {
+        String message = chatService.exitRoom(userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(message));
+    }
+
+    /**
      * 채팅 내용 불러오기
      */
     @GetMapping("/chat/{roomId}/{userId}")
+
     public ResponseEntity<ApiResponse<List<ChatDto>>> getChatMessages(@PathVariable Long roomId,
                                                                       @PathVariable Long userId) {
         List<ChatDto> chatDtos = chatService.getChatMessages(roomId, userId);

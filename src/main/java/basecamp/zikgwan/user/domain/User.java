@@ -47,6 +47,9 @@ public class User extends BaseEntity {
     @Column(name = "club", length = 50)
     private String club;
 
+    @Column(name = "current_room_id")
+    private Long currentRoomId; // 현재 사용자가 참여한 채팅방 id, 채팅방 알림 유무를 위한 컬럼
+
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'Y'")
     @Column(name = "save_state", nullable = false)
@@ -135,6 +138,11 @@ public class User extends BaseEntity {
     public void removeChatRoomUser(ChatRoomUser chatRoomUser) {
         chatRoomUsers.remove(chatRoomUser);
         chatRoomUser.setUser(null);
+    }
+
+    // 채팅방 입장, 퇴장용
+    public void updateCurrentRoomId(Long currentRoomId) {
+        this.currentRoomId = currentRoomId;
     }
 
     @Builder

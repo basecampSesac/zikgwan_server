@@ -129,7 +129,7 @@ public class ChatService {
                 .toList();
     }
 
-    // 채팅방 입장
+    // 처음 채팅방 입장
     // 처음 채팅방에 들어갈때만 사용하기 때문에 이후 채팅방 들어가면 호출하면 안 됨
     //TODO 시큐리티 세팅 필요 -> userId 가져올 필요 없어짐
     @Transactional
@@ -158,6 +158,9 @@ public class ChatService {
         user.addChatRoomUser(chatRoomUser);
         chatRoom.addChatRoomUser(chatRoomUser);
 
+        // 채팅방 입장한 상태로 변경
+        user.updateCurrentRoomId(chatRoom.getRoomId());
+
         ChatRoomUser saveChatUser = chatRoomUserRepository.save(chatRoomUser);
 
         return ChatUserDto.builder()
@@ -166,10 +169,11 @@ public class ChatService {
                 .build();
     }
 
-    // 채팅방 나가기
+    // 채팅방 떠나기 (아예 나감)
     @Transactional
     public String leaveRoom(Long roomId, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
@@ -180,6 +184,10 @@ public class ChatService {
         chatRoom.downUserCount();
         chatRoom.removeChatRoomUser(chatRoomUser);
         chatRoomUserRepository.delete(chatRoomUser);
+
+        // 채팅방 입장하지 않은 상태로 변경
+        user.updateCurrentRoomId(null);
+        userRepository.save(user);
 
         // 방 참여 인원이 0명이면 채팅방도 삭제
         if (chatRoom.getUserCount() <= 0) {
@@ -195,6 +203,38 @@ public class ChatService {
 
         return "채팅방 나가기 완료";
     }
+
+    // 채팅방 들어올때마다 호출
+    @Transactional
+    public String joinRoom(Long roomId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
+
+        // 채팅방 입장한 상태로 변경
+        user.updateCurrentRoomId(chatRoom.getRoomId());
+
+        userRepository.save(user);
+
+        return user.getNickname() + " 사용자 채팅방 입장 성공";
+    }
+
+    // 채팅방 나가기, 채팅방 나올때마다 호출 -> 화면에서 나가는 경우에도 호출
+    @Transactional
+    public String exitRoom(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+
+        // 채팅방 입장하지 않은 상태로 변경
+        user.updateCurrentRoomId(null);
+
+        userRepository.save(user);
+
+        return user.getNickname() + " 사용자 채팅방 퇴장 성공";
+    }
+
 
     // 채팅 내용 리스트
     // TODO 시큐리티 세팅 필요 -> userId 가져올 필요 없어짐
@@ -239,8 +279,9 @@ public class ChatService {
         for (ChatRoomUser cru : chatRoomUsers) {
             User receiver = cru.getUser();
 
-            // 보낸 사람은 알림 제외
-            if (!receiver.getNickname().equals(chatDto.getNickname())) {
+            // 자신이 보낸 채팅은 알림 제외, 현재 채팅방에 있는 사람은 알림 제외
+            if (!receiver.getNickname().equals(chatDto.getNickname()) && receiver.getCurrentRoomId()
+                    .equals(chatRoom.getRoomId())) {
                 sseService.broadcast(
                         receiver.getUserId(),
                         new EventPayload(roomId, chatDto.getMessage())
@@ -290,6 +331,5 @@ public class ChatService {
                 })
                 .toList();
     }
-
 
 }
