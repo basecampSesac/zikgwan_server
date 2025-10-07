@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -23,18 +22,29 @@ public class EmailVerificationController {
 
     private final EmailVerificationService emailVerifyService;
 
-    // 인증 코드 발송
+    /**
+     * 이메일 인증코드 요청
+     *
+     * @param emailVerificationDTO
+     * @return
+     */
     @PostMapping("/send")
-    public ResponseEntity<ApiResponse<String>> sendCode(@RequestBody @Valid  EmailVerificationDTO emailVerificationDTO) {
+    public ResponseEntity<ApiResponse<String>> sendCode(@RequestBody @Valid EmailVerificationDTO emailVerificationDTO) {
         emailVerifyService.sendVerificationCode(emailVerificationDTO.getEmail());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("인증 코드가 발송되었습니다."));
     }
 
-    // 인증 코드 검증
+    /**
+     * 인증 코드 검증
+     *
+     * @param emailVerificationDTO
+     * @return
+     */
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse<String>> verifyCode(@RequestBody @Valid EmailVerificationDTO emailVerificationDTO) {
+    public ResponseEntity<ApiResponse<String>> verifyCode(
+            @RequestBody @Valid EmailVerificationDTO emailVerificationDTO) {
         boolean result = emailVerifyService.verifyCode(emailVerificationDTO.getEmail(), emailVerificationDTO.getCode());
 
         System.out.println("email : " + emailVerificationDTO.getEmail());

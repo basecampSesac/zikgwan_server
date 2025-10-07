@@ -1,6 +1,10 @@
 package basecamp.zikgwan.config.security;
 
 
+import basecamp.zikgwan.common.dto.ApiResponse;
+import basecamp.zikgwan.user.domain.User;
+import basecamp.zikgwan.user.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,64 +14,87 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
-import java.io.IOException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
 @Component // 스프링 컨테이너한테 Bean 으로 등록해서 의존성 주입
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private  TokenProvider tokenProvider;
+    private final TokenProvider tokenProvider;
+    private final UserRepository userRepository; // DB 조회용
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
 
     @Override
-    protected  void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
-                                     FilterChain filterChain) throws ServletException, IOException {
-        try{
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        // 인증 제외 경로
+        String path = req.getRequestURI();
+        if (path.startsWith("/api/user/login") || path.startsWith("/api/email/") || path.startsWith(
+                "/api/user/chknickname") || path.startsWith("/api/match/")
+                || path.startsWith("/api/user/signup") || path.equals("/")) {
+            filterChain.doFilter(req, res);
+            return;
+        }
+
+        try {
             // req에서 token 꺼내오기
-            String token = parseBearerToken(req);
-            log.info("JwtAuthenticationFilter is running...");
+            String token = resolveToken(req);
+            log.info("JwtAuthenticationFilter 실행");
+
+            String header = req.getHeader("Authorization");
+
+            if (header == null || !header.startsWith("Bearer ")) {
+                res.setContentType("application/json");
+                res.setCharacterEncoding("UTF-8");
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+                // ApiResponse.fail 활용
+                ApiResponse<?> apiResponse = ApiResponse.fail("Authorization header is missing or token is invalid");
+
+                // JSON 변환 후 응답
+                res.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+                return;
+            }
 
             // token 검사
-            if(token != null && !token.equalsIgnoreCase("null")){
-                String userId = tokenProvider.validateAndGetUserId(token);
-                log.info("Authenticated user id : " + userId);
+            if (token != null && tokenProvider.validateToken(token)) {
+                Long userId = tokenProvider.getUserId(token);
+                log.info("토큰 user id : " + userId);
 
-                // 직전에 추출한 userId 로 인증 객체 생성
-                AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId,
-                        null, AuthorityUtils.NO_AUTHORITIES);
-                authentication.setDetails((new WebAuthenticationDetailsSource().buildDetails(req)));
+                User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("사용자 없음"));
 
-                // SecurityContextHolder :  Spring Security 에서 인증된 사용자 정보를 저장하는 곳
-                SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-                securityContext.setAuthentication(authentication); // 컨텍스트에 authentication 으로 심으면 이후부터는 인증된 사용자
-                SecurityContextHolder.setContext(securityContext);
+                CustomUserPrincipal principal = new CustomUserPrincipal(user);
+
+                AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null,
+                        principal.getAuthorities());
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        }catch (Exception e){
+            // 다음 필터/컨트롤러로 넘김
+            filterChain.doFilter(req, res);
+
+        } catch (Exception e) {
             // logger? spring security 필터 클래스에 기본 내장된 록
             logger.error("Could not set user authentication is security context", e);
 
         }
 
-        // 다음 필터/컨트롤러로 넘김
-        filterChain.doFilter(req, res);
     }
 
-    // 요청의 헤더에서 Bearer 토큰을 가져옴
-    // http 요청의 헤더를 파싱해서 Bearer 토큰을 리턴
-    private String parseBearerToken(HttpServletRequest req){
-        // Authorixation: Bearer <token>
-        String bearerToken = req.getHeader("Authorization");
+    @Autowired
+    public JwtAuthenticationFilter(TokenProvider tokenProvider, UserRepository userRepository) {
+        this.tokenProvider = tokenProvider;
+        this.userRepository = userRepository;
+    }
 
-        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {// 조건식의 마지막 공백 추가 오타 아님!!
-            return bearerToken.substring(7); // "Bearer " 문자열의 길이가 7
+    private String resolveToken(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        if (bearer != null && bearer.startsWith("Bearer ")) {
+            return bearer.substring(7);
         }
         return null;
     }

@@ -15,10 +15,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     //TODO 임시로 만듦, 시큐리티 적용시 삭제
     Optional<User> findByNickname(String nickName);
+
     User findByEmail(String email);
+
     Boolean existsByEmail(String email);
+
     Boolean existsByNickname(String nickName);
+
     User findByEmailAndPassword(String email, String password);
+
+    User findByUserId(Long userId);
+
+    Long countByUserIdNotAndNickname(Long userId, String nickname);
 
     @Modifying
     @Transactional
