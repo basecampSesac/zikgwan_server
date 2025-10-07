@@ -21,7 +21,8 @@ public class CommunityResponse {
     private LocalDateTime date;
     private Integer memberCount;
     private String stadium;
-    private String team;
+    private String home;
+    private String away;
     private String nickname;
     private CommunityState state;
     private SaveState saveState;
@@ -36,7 +37,8 @@ public class CommunityResponse {
                 .description(community.getDescription())
                 .date(community.getDate())
                 .stadium(community.getStadium())
-                .team(community.getTeam())
+                .home(community.getHome())
+                .away(community.getAway())
                 .memberCount(community.getMemberCount())
                 .nickname(community.getUser().getNickname())
                 .state(community.getState())

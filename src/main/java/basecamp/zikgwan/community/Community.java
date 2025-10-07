@@ -45,8 +45,11 @@ public class Community extends BaseEntity {
     @Column(name = "stadium", length = 100)
     private String stadium;
 
-    @Column(name = "team", length = 100)
-    private String team;
+    @Column(name = "home_team", length = 100)
+    private String home;
+
+    @Column(name = "away_team", length = 100)
+    private String away;
 
     @Column(name = "member_count", nullable = false)
     @ColumnDefault("'0'")
@@ -72,13 +75,14 @@ public class Community extends BaseEntity {
     }
 
     @Builder
-    private Community(String title, String description, LocalDateTime date, String stadium, String team,
+    private Community(String title, String description, LocalDateTime date, String stadium, String home, String away,
                       Integer memberCount, User user) {
         this.title = title;
         this.description = description;
         this.date = date;
         this.stadium = stadium;
-        this.team = team;
+        this.home = home;
+        this.away = away;
         this.memberCount = memberCount;
         this.user = user;
         this.saveState = SaveState.Y;
