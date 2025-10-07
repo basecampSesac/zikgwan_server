@@ -33,9 +33,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 인증 제외 경로
         String path = req.getRequestURI();
-        if (path.startsWith("/api/user/login") || path.startsWith("/api/email/") || path.startsWith(
-                "/api/user/chknickname") || path.startsWith("/api/match/")
-                || path.startsWith("/api/user/signup") || path.equals("/")) {
+        if (path.startsWith("/api/user/login") || path.startsWith("/api/email/")
+                || path.startsWith("/api/user/chknickname") || path.startsWith("/api/user/signup")
+                || path.startsWith("/api/match/") || path.startsWith("/api/chatroom/")
+                || path.startsWith("/api/chatroom/") || path.startsWith("/api/notification/")
+                || path.startsWith("/api/user/refresh/") || path.startsWith("/sub/")
+                || path.startsWith("/api/communities/")
+                || path.equals("/")) {
             filterChain.doFilter(req, res);
             return;
         }
