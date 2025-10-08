@@ -2,6 +2,7 @@ package basecamp.zikgwan.chat.controller;
 
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
+import basecamp.zikgwan.chat.dto.ChatUserDto;
 import basecamp.zikgwan.chat.dto.TicketInfoDto;
 import basecamp.zikgwan.chat.dto.UserInfoDto;
 import basecamp.zikgwan.chat.service.ChatService;
@@ -109,12 +110,12 @@ public class ChatRoomController {
      */
     // TODO 시큐리티 적용 필요
     @PatchMapping("/{roomId}/join/{userId}")
-    public ResponseEntity<ApiResponse<String>> joinRoom(@PathVariable Long roomId, @PathVariable Long userId) {
-        String message = chatService.joinRoom(roomId, userId);
+    public ResponseEntity<ApiResponse<ChatUserDto>> joinRoom(@PathVariable Long roomId, @PathVariable Long userId) {
+        ChatUserDto chatUserDto = chatService.joinRoom(roomId, userId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success(message));
+                .body(ApiResponse.success(chatUserDto));
     }
 
     /**

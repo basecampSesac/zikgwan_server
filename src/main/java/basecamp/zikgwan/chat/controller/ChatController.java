@@ -49,7 +49,7 @@ public class ChatController {
 
         log.info("채팅 내용: {}", chatDto);
 
-        // 채팅 저장과 동시에 알림을 보냄
+        // 채팅 저장과 동시에 알림을 보냄    // TODO SSE 구독 오류로 수정 필요 예외 터져서 실시간으로 메시지 안 보임
         chatService.saveChat(chatDto, chatRoomId);
 
         // 해당 주소를 구독한 클라이언트에게 전송

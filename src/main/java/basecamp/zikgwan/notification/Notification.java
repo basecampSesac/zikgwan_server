@@ -68,5 +68,6 @@ public class Notification extends CreatedEntity {
         this.message = message;
         this.readAt = readAt;
         this.receiver = receiver;
+        this.saveState = SaveState.Y;
     }
 }
