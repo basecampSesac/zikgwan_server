@@ -146,26 +146,34 @@ public class ChatService {
 
         // 이미 user가 들어간 해당 채팅방이 존재할 경우 예외 던짐
         if (chatRoomUserRepository.existsByChatRoomAndUser(chatRoom, user)) {
-            throw new IllegalArgumentException("이미 방이 존재합니다.");
-        }
-        chatRoom.upUserCount();
+//            throw new IllegalArgumentException("이미 방이 존재합니다.");
 
+            return joinRoom(roomId, user.getUserId());
+        }
+
+        // 인원수 증가
+        chatRoom.upUserCount();
+        chatRoomRepository.save(chatRoom);
+
+        // 연관관계 엔티티 생성
         ChatRoomUser chatRoomUser = ChatRoomUser.builder()
-                .user(null)
                 .build();
 
-        // 양방향 연관관계 동기화
+        // 양방향 관계 세팅
         user.addChatRoomUser(chatRoomUser);
         chatRoom.addChatRoomUser(chatRoomUser);
 
-        // 채팅방 입장한 상태로 변경
+        // 현재 방 업데이트
         user.updateCurrentRoomId(chatRoom.getRoomId());
+        userRepository.save(user);
 
-        ChatRoomUser saveChatUser = chatRoomUserRepository.save(chatRoomUser);
+        log.info("현재 userCount = {}", chatRoom.getUserCount());
+
+        ChatRoomUser savedChatUser = chatRoomUserRepository.save(chatRoomUser);
 
         return ChatUserDto.builder()
-                .roomId(saveChatUser.getChatRoom().getRoomId())
-                .userId(saveChatUser.getUser().getUserId())
+                .roomId(savedChatUser.getChatRoom().getRoomId())
+                .userId(savedChatUser.getUser().getUserId())
                 .build();
     }
 
@@ -206,9 +214,9 @@ public class ChatService {
 
     // 채팅방 들어올때마다 호출
     @Transactional
-    public String joinRoom(Long roomId, Long userId) {
+    public ChatUserDto joinRoom(Long roomId, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
@@ -218,7 +226,10 @@ public class ChatService {
 
         userRepository.save(user);
 
-        return user.getNickname() + " 사용자 채팅방 입장 성공";
+        return ChatUserDto.builder()
+                .roomId(chatRoom.getRoomId())
+                .userId(user.getUserId())
+                .build();
     }
 
     // 채팅방 나가기, 채팅방 나올때마다 호출 -> 화면에서 나가는 경우에도 호출

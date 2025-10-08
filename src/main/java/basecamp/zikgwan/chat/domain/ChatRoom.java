@@ -42,11 +42,11 @@ public class ChatRoom extends CreatedEntity {
     private Long typeId;  // 티켓 중고거래 id 또는 모임 id
 
     // 인원수는 채팅방 생성시 0이며 함수를 통해 ++
-    @ColumnDefault("'0'")
+//    @ColumnDefault("'0'")
     @Column(name = "user_count", nullable = false)
-    private Integer userCount;
+    private Integer userCount = 0;
 
-    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ChatRoomUser> chatRoomUsers = new ArrayList<>();
 
     // 인원 수 증가
