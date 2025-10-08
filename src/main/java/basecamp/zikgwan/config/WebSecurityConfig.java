@@ -41,6 +41,7 @@ public class WebSecurityConfig {
 
                  */
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/ws-connect/**").permitAll()   // WebSocket 핸드셰이크 HTTP 요청은 통과
                         .anyRequest().permitAll()); // 모든 요청 허용
 
         // filter 등록 :  매 요청마다 CrosFilter를 실행한 후에 JwtAuthenticationFilter 실행
