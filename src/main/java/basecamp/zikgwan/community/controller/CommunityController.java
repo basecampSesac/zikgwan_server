@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,7 +92,7 @@ public class CommunityController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String team,
             @RequestParam(required = false) String stadium,
-            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate date
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDate date
     ) {
         List<CommunityResponse> response = communityService.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
                 team, stadium, date);

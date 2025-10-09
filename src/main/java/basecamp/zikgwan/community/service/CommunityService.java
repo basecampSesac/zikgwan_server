@@ -69,10 +69,21 @@ public class CommunityService {
     public List<CommunityResponse> searchCommunitiesByTitleAndTeamAndStadiumAndDate(String title, String team,
                                                                                     String stadium,
                                                                                     LocalDate date) {
-        LocalDateTime datetime = date.atStartOfDay();
 
-        List<Community> communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title, team,
-                stadium, datetime, datetime.plusDays(1));
+        List<Community> communities;
+
+        // date null 체크
+        if (date != null) {
+            LocalDateTime datetime = date.atStartOfDay();
+
+            communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+                    team,
+                    stadium, datetime, datetime.plusDays(1));
+        } else {
+            communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+                    team,
+                    stadium, null, null);
+        }
 
         return communities.stream()
                 .map(c -> CommunityResponse.from(c))
