@@ -1,5 +1,6 @@
 package basecamp.zikgwan.community.repository;
 
+import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +36,14 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
 //    @Query("SELECT c FROM Community c JOIN c.leader u WHERE u.nickname LIKE %:nickname%")
 //    List<Community> findByLeaderNicknameContainingIgnoreCase(@Param("nickname") String nickname);
 
+    // 최신순
+    List<Community> findAllBySaveStateOrderByCreatedAtDesc(SaveState saveState);
+
+    // 모임 인원 많은 순
+    List<Community> findAllBySaveStateOrderByMemberCountDesc(SaveState saveState);
+
+    // 모임 인원 적은 순
+    List<Community> findAllBySaveStateOrderByMemberCountAsc(SaveState saveState);
 
     // 경기 제목, 모임 구단, 구장, 경기 날짜 선택 조회
     @Query("SELECT c FROM Community c " +

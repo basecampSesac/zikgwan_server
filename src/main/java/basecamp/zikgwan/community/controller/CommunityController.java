@@ -3,13 +3,13 @@ package basecamp.zikgwan.community.controller;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.community.dto.CommunityRequest;
 import basecamp.zikgwan.community.dto.CommunityResponse;
+import basecamp.zikgwan.community.enums.SortType;
 import basecamp.zikgwan.community.service.CommunityService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,12 +48,17 @@ public class CommunityController {
 
     /**
      * 전체 모임 목록 조회 GET /api/communities
+     * 기본값 최신순 RECENT
+     * 모임 인원 많은 순 MOST
+     * 모임 인원 적은 순 LEAST
      *
      * @return 모임 목록
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CommunityResponse>>> getAllCommunities() {
-        List<CommunityResponse> response = communityService.getAllCommunities();
+    public ResponseEntity<ApiResponse<List<CommunityResponse>>> getAllCommunities(
+            @RequestParam(required = false, defaultValue = "RECENT") SortType sortType
+            ) {
+        List<CommunityResponse> response = communityService.getAllCommunities(sortType);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -93,7 +98,7 @@ public class CommunityController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String team,
             @RequestParam(required = false) String stadium,
-            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate date
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
     ) {
         List<CommunityResponse> response = communityService.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
                 team, stadium, date);

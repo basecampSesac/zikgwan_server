@@ -1,8 +1,10 @@
 package basecamp.zikgwan.community.service;
 
+import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
 import basecamp.zikgwan.community.dto.CommunityRequest;
 import basecamp.zikgwan.community.dto.CommunityResponse;
+import basecamp.zikgwan.community.enums.SortType;
 import basecamp.zikgwan.community.repository.CommunityRepository;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
@@ -50,8 +52,23 @@ public class CommunityService {
     }
 
     // 전체 모임 목록 조회
-    public List<CommunityResponse> getAllCommunities() {
-        List<Community> communities = communityRepository.findAll();
+    public List<CommunityResponse> getAllCommunities(SortType sortType) {
+
+        List<Community> communities;
+
+        // 최신순
+        if (sortType == null || sortType.equals(SortType.RECENT)) {
+            communities = communityRepository.findAllBySaveStateOrderByCreatedAtDesc(SaveState.Y);
+
+            // 인원 많은 순
+        } else if (sortType.equals(SortType.MOST)) {
+            communities = communityRepository.findAllBySaveStateOrderByMemberCountDesc(SaveState.Y);
+
+            // 인원 적은 순
+        } else {
+            communities = communityRepository.findAllBySaveStateOrderByMemberCountAsc(SaveState.Y);
+        }
+
         return communities.stream()
                 .map(CommunityResponse::from)
                 .collect(Collectors.toList());
@@ -69,10 +86,21 @@ public class CommunityService {
     public List<CommunityResponse> searchCommunitiesByTitleAndTeamAndStadiumAndDate(String title, String team,
                                                                                     String stadium,
                                                                                     LocalDate date) {
-        LocalDateTime datetime = date.atStartOfDay();
 
-        List<Community> communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title, team,
-                stadium, datetime, datetime.plusDays(1));
+        List<Community> communities;
+
+        // date null 체크
+        if (date != null) {
+            LocalDateTime datetime = date.atStartOfDay();
+
+            communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+                    team,
+                    stadium, datetime, datetime.plusDays(1));
+        } else {
+            communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+                    team,
+                    stadium, null, null);
+        }
 
         return communities.stream()
                 .map(c -> CommunityResponse.from(c))
