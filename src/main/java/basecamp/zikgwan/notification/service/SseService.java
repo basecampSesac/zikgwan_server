@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -48,6 +49,21 @@ public class SseService {
         return emitter;
     }
 
+    // 25초마다 모든 구독자에게 ping 이벤트 전송 SSE 연결 해지 방지
+    @Scheduled(fixedRate = 25000)
+    public void sendHeartbeat() {
+        emitterRepository.findAll().forEach((userId, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("ping")
+                        .data("keep-alive"));
+            } catch (IOException e) {
+                emitterRepository.deleteById(userId);
+                log.warn("heartbeat 실패: userId={} — 연결 해제", userId);
+            }
+        });
+    }
+
     // 구독한 클라이언트에게 데이터 전송
     public void broadcast(Long userId, EventPayload eventPayload) {
         sendToClient(userId, eventPayload);
@@ -56,42 +72,47 @@ public class SseService {
     private void sendToClient(Long userId, EventPayload eventPayload) {
         SseEmitter sseEmitter = emitterRepository.findById(userId);
 
-        // roomId 없으면 DB 저장하지 않고 바로 이벤트만 전송
-        if (eventPayload.getRoomId() == null) {
-            try {
-                sseEmitter.send(SseEmitter.event()
-                        .name("connect")
-                        .data(eventPayload.getMessage()));
-            } catch (IOException e) {
-                emitterRepository.deleteById(userId);
-            }
+        // DB 저장
+        if (eventPayload.getRoomId() != null) {
+            User receiver = userRepository.findById(userId)
+                    .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+
+            Notification notification = Notification.builder()
+                    .receiver(receiver)
+                    .roomId(eventPayload.getRoomId())
+                    .readAt(null)
+                    .message(eventPayload.getMessage())
+                    .build();
+
+            notificationRepository.save(notification);
+            log.info("알림 저장 완료: userId={}, message={}", userId, eventPayload.getMessage());
+        }
+
+        // emitter 없으면 종료
+        if (sseEmitter == null) {
+            log.info("userId={}는 현재 오프라인 — 알림은 DB에만 저장됨", userId);
             return;
         }
 
-        User receiver = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
-
-        Notification notification = Notification.builder()
-                .receiver(receiver)
-                .roomId(eventPayload.getRoomId())
-                .readAt(null)   // 기본값 null (안 읽음)
-                .message(eventPayload.getMessage())
-                .build();
-
-        // 알림 내용 DB 저장
-        notificationRepository.save(notification);
-
-        // sse 전송
+        // 실시간 전송
         try {
-            sseEmitter.send(
-                    SseEmitter.event()
-                            .id(userId.toString())
-                            .name("chat-notification")
-                            .data(eventPayload.getMessage())
-            );
-        } catch (IOException e) {
+            String eventName = (eventPayload.getRoomId() == null)
+                    ? "connect"
+                    : "chat-notification";
+
+            sseEmitter.send(SseEmitter.event()
+                    .id(userId.toString())
+                    .name(eventName)
+                    .data(eventPayload));
+
+            log.info("SSE 실시간 알림 전송 성공: userId={}, event={}", userId, eventName);
+        } catch (IOException | IllegalStateException e) {
+            // 연결 끊긴 emitter는 제거
             emitterRepository.deleteById(userId);
-            throw new RuntimeException("연결 오류 발생");
+            log.warn("SSE 연결 끊김 — userId={}, error={}", userId, e.getMessage());
+        } catch (Exception e) {
+            // 기타 예외는 로그만 남김
+            log.error("SSE 전송 중 예기치 못한 오류 — userId={}, error={}", userId, e.getMessage(), e);
         }
     }
 }
