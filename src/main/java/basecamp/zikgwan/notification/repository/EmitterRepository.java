@@ -19,6 +19,10 @@ public class EmitterRepository {
         return emitter;
     }
 
+    public Map<Long, SseEmitter> findAll() {
+        return emitters;
+    }
+
     public void deleteById(Long userId) {
         emitters.remove(userId);
     }
