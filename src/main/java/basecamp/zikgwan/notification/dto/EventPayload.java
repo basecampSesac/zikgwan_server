@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EventPayload {
 
+    // TODO nickname, createAt 추가
     private Long roomId;
 
     private String message;

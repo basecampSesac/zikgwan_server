@@ -49,8 +49,8 @@ public class SseService {
         return emitter;
     }
 
-    // 25초마다 모든 구독자에게 ping 이벤트 전송 SSE 연결 해지 방지
-    @Scheduled(fixedRate = 25000)
+    // 55초마다 모든 구독자에게 ping 이벤트 전송 SSE 연결 해지 방지
+    @Scheduled(fixedRate = 55000)
     public void sendHeartbeat() {
         emitterRepository.findAll().forEach((userId, emitter) -> {
             try {

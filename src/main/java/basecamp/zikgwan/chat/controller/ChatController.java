@@ -10,7 +10,6 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @Slf4j
 @Controller
@@ -25,7 +24,7 @@ public class ChatController {
      * TODO 프로트와 연결 시 추가 설정 적용 필요
      */
     @MessageMapping("/chat.enter.{chatRoomId}")
-    public void enterUser(@RequestBody ChatDto chatDto, @DestinationVariable Long chatRoomId) {
+    public void enterUser(ChatDto chatDto, @DestinationVariable Long chatRoomId) {
 
         // 사용자 채팅방 처음 입장
         chatService.enterRoom(chatRoomId, chatDto.getNickname());
@@ -43,7 +42,7 @@ public class ChatController {
      * 메시지 전송
      */
     @MessageMapping("/chat.{chatRoomId}")
-    public void sendMessage(@RequestBody ChatDto chatDto, @DestinationVariable Long chatRoomId) {
+    public void sendMessage(ChatDto chatDto, @DestinationVariable Long chatRoomId) {
 
         chatDto.setSentAt(LocalDateTime.now());  // 현재 시간 저장
 
