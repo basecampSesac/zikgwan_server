@@ -82,6 +82,7 @@ public class SseService {
                     .roomId(eventPayload.getRoomId())
                     .readAt(null)
                     .message(eventPayload.getMessage())
+                    .senderNickname(eventPayload.getNickname())
                     .build();
 
             notificationRepository.save(notification);

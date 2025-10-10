@@ -1,5 +1,6 @@
 package basecamp.zikgwan.notification.dto;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,4 +16,9 @@ public class EventPayload {
     private Long roomId;
 
     private String message;
+
+    private String nickname;
+
+    private LocalDateTime sentAt;
+
 }

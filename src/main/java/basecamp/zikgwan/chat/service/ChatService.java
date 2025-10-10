@@ -286,7 +286,6 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
-
         // 해당 채팅방에 들어와 있는 사용자 정보 불러오고
         List<ChatRoomUser> chatRoomUsers = chatRoomUserRepository.findAllByChatRoom(chatRoom);
 
@@ -309,7 +308,14 @@ public class ChatService {
 
             // 나머지 사용자에게만 알림 전송
             log.info("{}에게 알림 전송 (현재방={}, 유저방={})", receiver.getNickname(), thisRoomId, currentRoomId);
-            sseService.broadcast(receiver.getUserId(), new EventPayload(roomId, chatDto.getMessage()));
+            sseService.broadcast(receiver.getUserId(),
+                    EventPayload.builder()
+                            .roomId(roomId)
+                            .message(chatDto.getMessage())
+                            .nickname(chatDto.getNickname())
+                            .sentAt(chatDto.getSentAt())
+                            .build()
+            );
         }
 
     }

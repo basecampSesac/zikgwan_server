@@ -40,6 +40,8 @@ public class NotificationService {
                         .roomId(n.getRoomId())
                         .message(n.getMessage())
                         .readAt(n.getReadAt())
+                        .senderNickname(n.getSenderNickname())
+                        .sentAt(n.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
