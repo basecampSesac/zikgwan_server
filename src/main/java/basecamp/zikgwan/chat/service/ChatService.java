@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -255,12 +256,20 @@ public class ChatService {
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
-        ChatRoomUser chatRoomUser = chatRoomUserRepository.findByChatRoomAndUser(chatRoom, user)
-                .orElseThrow(() -> new NoSuchElementException("채팅방에 참여한 사용자가 존재하지 않습니다."));
 
-        // 찾은 채팅 내용
-        List<Chat> chats = chatRepository.findAllByRoomIdAndSentAtAfter(String.valueOf(roomId),
-                chatRoomUser.getJoinedAt());
+        // 처음 채팅방을 생성할 경우 빈 리스트 반환
+        Optional<ChatRoomUser> chatRoomUserOpt = chatRoomUserRepository.findByChatRoomAndUser(chatRoom, user);
+        if (chatRoomUserOpt.isEmpty()) {
+            log.info("{} 사용자가 채팅 방을 생성함 (빈 리스트 반환)", user.getNickname(), roomId);
+            return List.of();
+        }
+
+        ChatRoomUser chatRoomUser = chatRoomUserOpt.get();
+
+        List<Chat> chats = chatRepository.findAllByRoomIdAndSentAtAfter(
+                String.valueOf(roomId),
+                chatRoomUser.getJoinedAt()
+        );
 
         return chats.stream().map(c -> ChatDto.builder()
                 .nickname(c.getSender())
