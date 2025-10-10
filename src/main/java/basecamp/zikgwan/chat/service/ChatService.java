@@ -23,6 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -285,19 +286,36 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
+        // 해당 채팅방에 들어와 있는 사용자 정보 불러오고
         List<ChatRoomUser> chatRoomUsers = chatRoomUserRepository.findAllByChatRoom(chatRoom);
 
         for (ChatRoomUser cru : chatRoomUsers) {
             User receiver = cru.getUser();
 
-            // 자신이 보낸 채팅은 알림 제외, 현재 채팅방에 있는 사람은 알림 제외
-            if (!receiver.getNickname().equals(chatDto.getNickname()) && receiver.getCurrentRoomId()
-                    .equals(chatRoom.getRoomId())) {
-                sseService.broadcast(
-                        receiver.getUserId(),
-                        new EventPayload(roomId, chatDto.getMessage())
-                );
+            // 본인 메시지는 제외
+            if (receiver.getNickname().equals(chatDto.getNickname())) {
+                continue;
             }
+
+            // 현재 채팅방에 들어와 있으면 제외
+            Long currentRoomId = receiver.getCurrentRoomId();
+            Long thisRoomId = chatRoom.getRoomId();
+
+            if (Objects.equals(currentRoomId, thisRoomId)) {
+                log.info("{}는 현재 방({})에 있으므로 알림 제외", receiver.getNickname(), thisRoomId);
+                continue;
+            }
+
+            // 나머지 사용자에게만 알림 전송
+            log.info("{}에게 알림 전송 (현재방={}, 유저방={})", receiver.getNickname(), thisRoomId, currentRoomId);
+            sseService.broadcast(receiver.getUserId(),
+                    EventPayload.builder()
+                            .roomId(roomId)
+                            .message(chatDto.getMessage())
+                            .nickname(chatDto.getNickname())
+                            .sentAt(chatDto.getSentAt())
+                            .build()
+            );
         }
 
     }

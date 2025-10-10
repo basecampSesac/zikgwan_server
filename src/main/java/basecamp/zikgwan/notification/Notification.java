@@ -45,6 +45,9 @@ public class Notification extends CreatedEntity {
     @JoinColumn(name = "receiver", nullable = false)
     private User receiver;
 
+    @Column(name = "sender_nickname", length = 50)
+    private String senderNickname;
+
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'Y'")
     @Column(name = "save_state", nullable = false)
@@ -63,11 +66,12 @@ public class Notification extends CreatedEntity {
     }
 
     @Builder
-    private Notification(Long roomId, String message, LocalDateTime readAt, User receiver) {
+    private Notification(Long roomId, String message, LocalDateTime readAt, User receiver, String senderNickname) {
         this.roomId = roomId;
         this.message = message;
         this.readAt = readAt;
         this.receiver = receiver;
+        this.senderNickname = senderNickname;
         this.saveState = SaveState.Y;
     }
 }
