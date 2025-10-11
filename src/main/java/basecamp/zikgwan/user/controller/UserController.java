@@ -74,6 +74,7 @@ public class UserController {
         }
         User user = User.builder().email(userDTO.getEmail()).nickname(userDTO.getNickname())
                 .password(passwordEncoder.encode(userDTO.getPassword())).club(userDTO.getClub()).saveState(SaveState.Y)
+                .provider("local")
                 .build();
 
         //System.out.println("************" +userDTO.getPassword());
