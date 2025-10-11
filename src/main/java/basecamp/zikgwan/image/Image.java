@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -41,5 +42,14 @@ public class Image extends CreatedEntity {
     @ColumnDefault("'Y'")
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
+
+    @Builder
+    private Image(Long imageId, ImageType imageType, Long refId, String imagePath, SaveState saveState) {
+        this.imageId = imageId;
+        this.imageType = imageType;
+        this.refId = refId;
+        this.imagePath = imagePath;
+        this.saveState = saveState;
+    }
 
 }
