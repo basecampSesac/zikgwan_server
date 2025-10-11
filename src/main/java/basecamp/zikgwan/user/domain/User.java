@@ -52,6 +52,9 @@ public class User extends BaseEntity {
     @Column(name = "current_room_id")
     private Long currentRoomId; // 현재 사용자가 참여한 채팅방 id, 채팅방 알림 유무를 위한 컬럼
 
+    @Column(name = "provider", length = 10)
+    private String provider; //소셜 로그인 제공 //kakao, naver, google
+
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'Y'")
     @Column(name = "save_state", nullable = false)
@@ -148,12 +151,14 @@ public class User extends BaseEntity {
     }
 
     @Builder
-    private User(Long userId, String nickname, String email, String password, String club, SaveState saveState) {
+    private User(Long userId, String nickname, String email, String password, String club, SaveState saveState,
+                 String provider) {
         this.userId = userId;
         this.nickname = nickname;
         this.email = email;
         this.password = password;
         this.club = club;
         this.saveState = saveState;
+        this.provider = provider;
     }
 }

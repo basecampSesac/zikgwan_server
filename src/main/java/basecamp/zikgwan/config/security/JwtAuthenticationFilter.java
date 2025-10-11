@@ -43,12 +43,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/chatroom/")
                 || path.startsWith("/api/notification/")
                 || path.startsWith("/sub/")
-                || path.startsWith("/api/communities/")
+                || path.startsWith("/api/communities")
                 || path.equals("/")
                 || path.startsWith("/ws-connect") // WebSocket은 인증 제외
-                || path.startsWith("/api/sse/"))
-
-        {
+                || path.startsWith("/api/sse/")
+                || path.startsWith("/api/socialLogin") //소셜로그인
+        ) {
             filterChain.doFilter(req, res);
             return;
         }
