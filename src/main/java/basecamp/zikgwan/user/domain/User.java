@@ -27,7 +27,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)  // JPA용 기본 생성자
 @Table(name = "users")
 public class User extends BaseEntity {
