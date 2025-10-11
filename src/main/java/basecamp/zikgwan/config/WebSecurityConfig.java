@@ -40,8 +40,11 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()); // 그 이외의 모든 경로는 인증 해야됨
 
                  */
+
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/ws-connect/**").permitAll()   // WebSocket 핸드셰이크 HTTP 요청은 통과
+                        // 정적 이미지 접근 허용
+                        .requestMatchers("/images/**").permitAll()
                         .anyRequest().permitAll()); // 모든 요청 허용
 
         // filter 등록 :  매 요청마다 CrosFilter를 실행한 후에 JwtAuthenticationFilter 실행
