@@ -143,6 +143,10 @@ public class UserService {
     public User userLogin(final String email, final String password, final PasswordEncoder encoder) {
         final User originalUser = userRepository.findByEmail(email);
 
+        if (originalUser.getProvider() != null) {
+            throw new IllegalArgumentException("소셜로그인 사용자입니다." + originalUser.getProvider() + "로그인을 이용해주세요.");
+        }
+
         //탈퇴한 회원이면 로그인 불가
         if (originalUser.getSaveState().equals(SaveState.N)) {
             return null;

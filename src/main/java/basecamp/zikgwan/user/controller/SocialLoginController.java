@@ -6,6 +6,7 @@ import basecamp.zikgwan.user.service.SocialLoginService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -63,8 +64,9 @@ public class SocialLoginController {
                 + "client_id=" + kakaoClientId
                 + "&redirect_uri=" + kakaoRedirectUri
                 + "&response_type=code"
-                + "&scope=profile_nickname,account_email";
-        System.out.println(returnUrl);
+                + "&scope=profile_nickname,account_email"
+                + "&prompt=login";
+        System.out.println("카카오 로그인요청 URL : " + returnUrl);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(returnUrl));
     }
@@ -78,6 +80,8 @@ public class SocialLoginController {
      */
     @GetMapping("/kakao/oauth2")
     public void kakaoLogin(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
+
+        System.out.println("카카오에서 로그인 후 보내주는 code : " + code);
         String accessToken = getKakaoAccessToken(code);
         Map<String, Object> userInfo = getKakaoUserInfo(accessToken);
 
@@ -88,6 +92,12 @@ public class SocialLoginController {
         redirectAfterLogin("kakao", email, nickname, response);
     }
 
+    /**
+     * 카카오 로그인 accessToken
+     *
+     * @param code
+     * @return
+     */
     private String getKakaoAccessToken(String code) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -104,6 +114,12 @@ public class SocialLoginController {
         return (String) tokenResponse.get("access_token");
     }
 
+    /**
+     * 카카오 로그인 사용자 정보
+     *
+     * @param accessToken
+     * @return
+     */
     private Map<String, Object> getKakaoUserInfo(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
@@ -116,6 +132,142 @@ public class SocialLoginController {
                 Map.class
         );
         return response.getBody();
+    }
+
+    /**
+     * 네이버 로그인 URL호출
+     *
+     * @return
+     */
+    @GetMapping("/naver/loginUrl")
+    public ResponseEntity<ApiResponse<String>> getAuthNaver() {
+        String state = UUID.randomUUID().toString(); // CSRF 방지용 state 값 생성
+        String returnUrl = "https://nid.naver.com/oauth2.0/authorize?"
+                + "response_type=code"
+                + "&client_id=" + naverClientId
+                + "&redirect_uri=" + naverRedirectUri
+                + "&state=" + state;
+        System.out.println("네이버 로그인 요청 URL : " + returnUrl);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(returnUrl));
+    }
+
+    /**
+     * 네이버 로그인 이후 사용자정보
+     *
+     * @param code
+     * @param state
+     * @param response
+     * @throws Exception
+     */
+    @GetMapping("/naver/oauth2")
+    public void naverLogin(@RequestParam("code") String code,
+                           @RequestParam("state") String state,
+                           HttpServletResponse response) throws Exception {
+
+        System.out.println("네이버에서 로그인 후 보내주는 code : " + code);
+        System.out.println("네이버에서 로그인 후 보내주는 state : " + state);
+
+        // AccessToken 발급
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", naverClientId);
+        params.add("client_secret", naverClientSecret);
+        params.add("code", code);
+        params.add("state", state);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+        Map tokenResponse = restTemplate.postForObject("https://nid.naver.com/oauth2.0/token", request, Map.class);
+        String accessToken = (String) tokenResponse.get("access_token");
+
+        //사용자 정보 조회
+        HttpHeaders userHeaders = new HttpHeaders();
+        userHeaders.add("Authorization", "Bearer " + accessToken);
+        HttpEntity<?> userRequest = new HttpEntity<>(userHeaders);
+
+        ResponseEntity<Map> userResponse = restTemplate.exchange(
+                "https://openapi.naver.com/v1/nid/me",
+                HttpMethod.GET,
+                userRequest,
+                Map.class
+        );
+
+        Map<String, Object> responseBody = (Map<String, Object>) userResponse.getBody().get("response");
+        String email = (String) responseBody.get("email");
+        String nickname = (String) responseBody.get("nickname");
+
+        System.out.println("네이버로그인 이메일 : " + email);
+        System.out.println("네이버로그인 nickname : " + nickname);
+
+        redirectAfterLogin("naver", email, nickname, response);
+    }
+
+    /**
+     * 구글로그인 URL
+     *
+     * @return
+     */
+    @GetMapping("/google/loginUrl")
+    public ResponseEntity<ApiResponse<String>> getAuthGoogle() {
+        String returnUrl = "https://accounts.google.com/o/oauth2/v2/auth"
+                + "?client_id=" + googleClientId
+                + "&redirect_uri=" + googleRedirectUri
+                + "&response_type=code"
+                + "&scope=openid%20email%20profile"
+                + "&access_type=offline"
+                + "&prompt=consent"; // 매번 로그인 강제
+
+        System.out.println("구글 로그인요청 URL : " + returnUrl);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(returnUrl));
+    }
+
+    /**
+     * 구글로그인  사용자정보 받아오기
+     *
+     * @param code
+     * @param response
+     * @throws Exception
+     */
+    @GetMapping("/google/oauth2")
+    public void googleLogin(@RequestParam("code") String code,
+                            HttpServletResponse response) throws Exception {
+        // 1. AccessToken 발급
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", googleClientId);
+        params.add("client_secret", googleClientSecret);
+        params.add("redirect_uri", googleRedirectUri);
+        params.add("code", code);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+        Map tokenResponse = restTemplate.postForObject("https://oauth2.googleapis.com/token", request, Map.class);
+        String accessToken = (String) tokenResponse.get("access_token");
+
+        // 2. 사용자 정보 조회
+        HttpHeaders userHeaders = new HttpHeaders();
+        userHeaders.add("Authorization", "Bearer " + accessToken);
+        HttpEntity<?> userRequest = new HttpEntity<>(userHeaders);
+
+        ResponseEntity<Map> userResponse = restTemplate.exchange(
+                "https://www.googleapis.com/oauth2/v2/userinfo",
+                HttpMethod.GET,
+                userRequest,
+                Map.class
+        );
+
+        Map<String, Object> responseBody = userResponse.getBody();
+        
+        String email = (String) responseBody.get("email");
+        String nickname = (String) responseBody.get("name");
+
+        redirectAfterLogin("google", email, nickname, response);
     }
 
 

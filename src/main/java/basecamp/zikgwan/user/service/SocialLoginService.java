@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +27,16 @@ public class SocialLoginService {
         //이메일 계정으로 회원존재여부 확인
         User user = userRepository.findByEmail(email);
 
-        String existingProvider = user.getProvider();
+        String existingProvider = null;
 
         if (user == null) {
+
+            //닉네임이 존재하는경우 닉네임정보 임의로 수정
+            if (userService.checkNickname(nickname)) {
+
+                String code = String.format("%06d", new Random().nextInt(99999999));
+                nickname = nickname.trim() + code;
+            }
             //신규회원 가입
             user = User.builder()
                     .email(email)
@@ -38,6 +46,7 @@ public class SocialLoginService {
                     .build();
             user = userRepository.save(user);
         } else {
+            existingProvider = user.getProvider();
             // 이미 존재
             if (existingProvider == null) {
                 //일반 이메일 회원이 소셜 로그인 시도한 경우
