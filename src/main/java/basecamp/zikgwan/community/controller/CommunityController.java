@@ -1,6 +1,7 @@
 package basecamp.zikgwan.community.controller;
 
 import basecamp.zikgwan.common.dto.ApiResponse;
+import basecamp.zikgwan.community.dto.CommunityPageResponse;
 import basecamp.zikgwan.community.dto.CommunityRequest;
 import basecamp.zikgwan.community.dto.CommunityResponse;
 import basecamp.zikgwan.community.enums.SortType;
@@ -9,6 +10,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,18 +49,16 @@ public class CommunityController {
     }
 
     /**
-     * 전체 모임 목록 조회 GET /api/communities
-     * 기본값 최신순 RECENT
-     * 모임 인원 많은 순 MOST
-     * 모임 인원 적은 순 LEAST
+     * 전체 모임 목록 조회 페이징 기본값 최신순 RECENT 모임 인원 많은 순 MOST 모임 인원 적은 순 LEAST
      *
      * @return 모임 목록
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CommunityResponse>>> getAllCommunities(
-            @RequestParam(required = false, defaultValue = "RECENT") SortType sortType
-            ) {
-        List<CommunityResponse> response = communityService.getAllCommunities(sortType);
+    public ResponseEntity<ApiResponse<CommunityPageResponse>> getAllCommunities(
+            @RequestParam(required = false, defaultValue = "RECENT") SortType sortType,
+            Pageable pageable
+    ) {
+        CommunityPageResponse response = communityService.getAllCommunities(sortType, pageable);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -109,91 +109,4 @@ public class CommunityController {
 
     }
 
-//    /**
-//     * 모임 검색 (제목으로 검색) GET /api/communities/search?title=검색어
-//     *
-//     * @param title 검색할 제목
-//     * @return 검색된 모임 목록
-//     */
-//    @GetMapping("/search")
-//    public ResponseEntity<ApiResponse<List<CommunityResponse>>> searchCommunitiesByTitle(
-//            @RequestParam(required = false) String title
-//    ) {
-//        List<CommunityResponse> response = communityService.searchCommunitiesByTitle(title);
-//
-//        return ResponseEntity
-//                .status(HttpStatus.OK)
-//                .body(ApiResponse.success(response));
-//
-//    }
-//
-//    /**
-//     * 경기장으로 모임 검색 GET /api/communities/search/stadium?stadium=경기장명
-//     *
-//     * @param stadium 검색할 경기장명
-//     * @return 검색된 모임 목록
-//     */
-//    @GetMapping("/search/stadium")
-//    public ResponseEntity<ApiResponse<List<CommunityResponse>>> searchCommunitiesByStadium(
-//            @RequestParam(required = false) String stadium
-//    ) {
-//        List<CommunityResponse> response = communityService.searchCommunitiesByStadium(stadium);
-//        return ResponseEntity
-//                .status(HttpStatus.OK)
-//                .body(ApiResponse.success(response));
-//
-//    }
-//
-//    /**
-//     * 팀으로 모임 검색 GET /api/communities/search/team?team=팀명
-//     *
-//     * @param team 검색할 팀명
-//     * @return 검색된 모임 목록
-//     */
-//    @GetMapping("/search/team")
-//    public ResponseEntity<ApiResponse<List<CommunityResponse>>> searchCommunitiesByTeam(
-//            @RequestParam(required = false) String team
-//    ) {
-//        List<CommunityResponse> response = communityService.searchCommunitiesByTeam(team);
-//
-//        return ResponseEntity
-//                .status(HttpStatus.OK)
-//                .body(ApiResponse.success(response));
-//
-//    }
-//
-//    /**
-//     * 날짜로 모임 검색 GET /api/communities/search/date?date=2024-05-15
-//     *
-//     * @param date 검색할 날짜
-//     * @return 검색된 모임 목록
-//     */
-//    @GetMapping("/search/date")
-//    public ResponseEntity<ApiResponse<List<CommunityResponse>>> searchCommunitiesByDate(
-//            @RequestParam(required = false) LocalDate date
-//    ) {
-//        List<CommunityResponse> response = communityService.searchCommunitiesByDate(date);
-//        return ResponseEntity
-//                .status(HttpStatus.OK)
-//                .body(ApiResponse.success(response));
-//
-//    }
-//
-//    /**
-//     * 모임장으로 모임 검색 GET /api/communities/search/leader?nickname=모임장닉네임
-//     *
-//     * @param nickname 검색할 모임장 닉네임
-//     * @return 검색된 모임 목록
-//     */
-//    @GetMapping("/search/leader")
-//    public ResponseEntity<ApiResponse<List<CommunityResponse>>> searchCommunitiesByLeader(
-//            @RequestParam(required = false) String nickname
-//    ) {
-//        List<CommunityResponse> response = communityService.searchCommunitiesByLeader(nickname);
-//
-//        return ResponseEntity
-//                .status(HttpStatus.OK)
-//                .body(ApiResponse.success(response));
-//
-//    }
 }
