@@ -5,6 +5,8 @@ import basecamp.zikgwan.user.dto.UserResponseDto;
 import basecamp.zikgwan.user.service.SocialLoginService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -263,7 +265,7 @@ public class SocialLoginController {
         );
 
         Map<String, Object> responseBody = userResponse.getBody();
-        
+
         String email = (String) responseBody.get("email");
         String nickname = (String) responseBody.get("name");
 
@@ -291,10 +293,14 @@ public class SocialLoginController {
         refreshToken.setPath("/");
         response.addCookie(refreshToken);
 
+        //한글 특수문자 인코딩
+        String encodeNickname = URLEncoder.encode(nickname, StandardCharsets.UTF_8);
+        String encodeEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+
         // 프론트 리다이렉트 (쿼리스트링 닉네임 이메일 )
         String redirectUrl = FRONT_REDIRECT_URL
-                + "?nickname=" + nickname
-                + "&email=" + email;
+                + "?nickname=" + encodeNickname
+                + "&email=" + encodeEmail;
         response.sendRedirect(redirectUrl);
     }
 }

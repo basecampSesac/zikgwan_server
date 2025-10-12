@@ -189,6 +189,10 @@ public class UserService {
             return false;
         }
 
+        //회원탈퇴시 리프래쉬 토큰 삭제
+        Boolean deleteRefreshToken = deleteRefreshTokenByUserId(id);
+        System.out.println("회원탈퇴시 리프래쉬 토큰 삭제" + deleteRefreshToken);
+
         Boolean deleteResult = false;
         if (userRepository.updateSaveStatusToN(id) > 0) {
             deleteResult = true;
@@ -197,16 +201,21 @@ public class UserService {
     }
 
     /**
-     * 로그아웃 시 리프레쉬토큰 삭제
+     * 리프레쉬토큰 삭제
      *
      * @param userId
      * @return
      */
     @Transactional
     public boolean deleteRefreshTokenByUserId(Long userId) {
-        Token token = tokenRepository.findByUserUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Refresh Token not found"));
-        tokenRepository.delete(token);
+        //리프래시 토큰 찾아서 토큰이 있으면 삭제
+        tokenRepository.findByUserUserId(userId).ifPresentOrElse(
+                token -> {
+                    tokenRepository.delete(token);
+                    System.out.println("Refresh Token 삭제  userId : " + userId);
+                },
+                () -> System.out.println("Refresh Token 없음 userId : " + userId)
+        );
         return true;
     }
 
