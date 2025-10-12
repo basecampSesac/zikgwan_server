@@ -2,6 +2,7 @@ package basecamp.zikgwan.community.service;
 
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
+import basecamp.zikgwan.community.dto.CommunityPageResponse;
 import basecamp.zikgwan.community.dto.CommunityRequest;
 import basecamp.zikgwan.community.dto.CommunityResponse;
 import basecamp.zikgwan.community.enums.SortType;
@@ -14,6 +15,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,37 +55,34 @@ public class CommunityService {
     }
 
     // 전체 모임 목록 조회
-    public List<CommunityResponse> getAllCommunities(SortType sortType) {
+    public CommunityPageResponse getAllCommunities(SortType sortType, Pageable pageable) {
 
-        List<Community> communities;
+        Page<Community> communities = checkSortBy(sortType, pageable);
 
-        // 최신순
-        if (sortType == null || sortType.equals(SortType.RECENT)) {
-            communities = communityRepository.findAllBySaveStateOrderByCreatedAtDesc(SaveState.Y);
-
-            // 인원 많은 순
-        } else if (sortType.equals(SortType.MOST)) {
-            communities = communityRepository.findAllBySaveStateOrderByMemberCountDesc(SaveState.Y);
-
-            // 인원 적은 순
-        } else {
-            communities = communityRepository.findAllBySaveStateOrderByMemberCountAsc(SaveState.Y);
-        }
-
-        return communities.stream()
+        List<CommunityResponse> content = communities
                 .map(CommunityResponse::from)
-                .collect(Collectors.toList());
+                .getContent();
+
+        return CommunityPageResponse.builder()
+                .content(content)
+                .page(communities.getNumber())
+                .size(communities.getSize())
+                .totalElements(communities.getTotalElements())
+                .totalPages(communities.getTotalPages())
+                .last(communities.isLast())
+                .build();
     }
 
     // 특정 모임 상세 조회
+
     public CommunityResponse getCommunityById(Long communityId) {
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다. ID: " + communityId));
 
         return CommunityResponse.from(community);
     }
-
     // 제목, 모임 구단, 구장, 경기 날짜를 선택 입력으로 필터링하여 조회
+
     public List<CommunityResponse> searchCommunitiesByTitleAndTeamAndStadiumAndDate(String title, String team,
                                                                                     String stadium,
                                                                                     LocalDate date) {
@@ -107,83 +107,22 @@ public class CommunityService {
                 .collect(Collectors.toList());
     }
 
-//    // 제목으로 모임 검색
-//    public List<CommunityResponse> searchCommunitiesByTitle(String title) {
-//        List<Community> communities;
-//
-//        communities = communityRepository.findByTitleContainingIgnoreCase(title.trim());
-//
-//        return communities.stream()
-//                .map(CommunityResponse::from)
-//                .collect(Collectors.toList());
-//
-//    }
-//
-//    // 경기장으로 모임 검색
-//    public List<CommunityResponse> searchCommunitiesByStadium(String stadium) {
-//        List<Community> communities;
-//
-//        if (stadium == null || stadium.trim().isEmpty()) {
-//            communities = communityRepository.findAll();
-//        } else {
-//            communities = communityRepository.findByStadiumContainingIgnoreCase(stadium.trim());
-//        }
-//
-//        List<CommunityResponse> responses = communities.stream()
-//                .map(CommunityResponse::from)
-//                .collect(Collectors.toList());
-//
-//        return ApiResponse.success("경기장 검색 결과를 성공적으로 조회했습니다.", responses);
-//    }
-//
-//    // 팀으로 모임 검색
-//    public ApiResponse<List<CommunityResponse>> searchCommunitiesByTeam(String team) {
-//        List<Community> communities;
-//
-//        if (team == null || team.trim().isEmpty()) {
-//            communities = communityRepository.findAll();
-//        } else {
-//            communities = communityRepository.findByTeamContainingIgnoreCase(team.trim());
-//        }
-//
-//        List<CommunityResponse> responses = communities.stream()
-//                .map(CommunityResponse::from)
-//                .collect(Collectors.toList());
-//
-//        return ApiResponse.success("팀 검색 결과를 성공적으로 조회했습니다.", responses);
-//    }
-//
-//    // 날짜로 모임 검색
-//    public ApiResponse<List<CommunityResponse>> searchCommunitiesByDate(LocalDate date) {
-//        List<Community> communities;
-//
-//        if (date == null) {
-//            communities = communityRepository.findAll();
-//        } else {
-//            communities = communityRepository.findByMatchDate(date);
-//        }
-//
-//        List<CommunityResponse> responses = communities.stream()
-//                .map(CommunityResponse::from)
-//                .collect(Collectors.toList());
-//
-//        return ApiResponse.success("해당 날짜의 모임을 성공적으로 조회했습니다.", responses);
-//    }
-//
-//    // 모임장 닉네임으로 모임 검색
-//    public ApiResponse<List<CommunityResponse>> searchCommunitiesByLeader(String nickname) {
-//        List<Community> communities;
-//
-//        if (nickname == null || nickname.trim().isEmpty()) {
-//            communities = communityRepository.findAll();
-//        } else {
-//            communities = communityRepository.findByLeaderNicknameContainingIgnoreCase(nickname.trim());
-//        }
-//
-//        List<CommunityResponse> responses = communities.stream()
-//                .map(CommunityResponse::from)
-//                .collect(Collectors.toList());
-//
-//        return ApiResponse.success("모임장 검색 결과를 성공적으로 조회했습니다.", responses);
-//    }
+    // 정렬 조건 확인 및 정렬
+    private Page<Community> checkSortBy(SortType sortType, Pageable pageable) {
+        Page<Community> communities;
+
+        // 최신순
+        if (sortType == null || sortType.equals(SortType.RECENT)) {
+            communities = communityRepository.findAllBySaveStateOrderByCreatedAtDesc(SaveState.Y, pageable);
+
+            // 인원 많은 순
+        } else if (sortType.equals(SortType.MOST)) {
+            communities = communityRepository.findAllBySaveStateOrderByMemberCountDesc(SaveState.Y, pageable);
+
+            // 인원 적은 순
+        } else {
+            communities = communityRepository.findAllBySaveStateOrderByMemberCountAsc(SaveState.Y, pageable);
+        }
+        return communities;
+    }
 }
