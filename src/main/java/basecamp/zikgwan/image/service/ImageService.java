@@ -5,6 +5,7 @@ import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.image.Image;
 import basecamp.zikgwan.image.enums.ImageType;
 import basecamp.zikgwan.image.repository.ImageRepository;
+import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,19 +34,20 @@ public class ImageService {
      * @return
      * @throws IOException
      */
+    @Transactional
     public Image uploadImage(ImageType type, Long refId, MultipartFile file, Long ownerId) throws IOException {
+        System.out.println("type : "+ type + ",refId:"+refId +",ownerId : "+ownerId );
+
+
         // 기존 이미지 삭제처리
-        imageRepository.findByImageTypeAndRefIdAndSaveState(type, refId, SaveState.Y)
-                .ifPresent(img -> {
-                    Image softDeleted = Image.builder()
-                            .imageId(img.getImageId())
-                            .imageType(img.getImageType())
-                            .refId(img.getRefId())
-                            .imagePath(img.getImagePath())
-                            .saveState(SaveState.N)
-                            .build();
-                    imageRepository.save(softDeleted);
-                });
+        if(type.equals(ImageType.U)) {
+            imageRepository.findByImageTypeAndRefIdAndSaveState(type, ownerId, SaveState.Y)
+                    .ifPresent(img -> img.setSaveState(SaveState.N));
+        }
+        else {
+            imageRepository.findByImageTypeAndRefIdAndSaveState(type, refId, SaveState.Y)
+                    .ifPresent(img -> img.setSaveState(SaveState.N));
+        }
 
         // 타입별 폴더 생성
         Path folder = Paths.get(uploadDir, type.getPath());
@@ -85,18 +87,24 @@ public class ImageService {
      *
      * @param imageId
      */
+    @Transactional
     public void deleteImage(Long imageId) {
         imageRepository.findById(imageId)
+                .ifPresent(img -> img.setSaveState(SaveState.N));
+        /*
+        imageRepository.findById(imageId)
                 .ifPresent(img -> {
-                    Image softDeletedImage = Image.builder()
+                    Image delImg = Image.builder()
                             .imageId(img.getImageId())
                             .imageType(img.getImageType())
                             .refId(img.getRefId())
                             .imagePath(img.getImagePath())
                             .saveState(SaveState.N)
                             .build();
-                    imageRepository.save(softDeletedImage);
+                    imageRepository.save(delImg);
                 });
+
+         */
     }
 
     /**

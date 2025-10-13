@@ -126,7 +126,7 @@ public class UserService {
         }
 
         User updateuser = User.builder().club(user.getClub()).nickname(updateNickname).password(newEncodedPassword)
-                .saveState(SaveState.Y).email(chkUser.getEmail()).userId(id).build();
+                .saveState(SaveState.Y).email(chkUser.getEmail()).userId(id).provider(chkUser.getProvider()).build();
 
         return userRepository.save(updateuser);
 
@@ -142,6 +142,10 @@ public class UserService {
      */
     public User userLogin(final String email, final String password, final PasswordEncoder encoder) {
         final User originalUser = userRepository.findByEmail(email);
+
+        if (originalUser == null) {
+            throw new IllegalArgumentException("존재하지 않는 이메일입니다.");
+        }
 
         if (!originalUser.getProvider().equals("local")) {
             throw new IllegalArgumentException("소셜로그인 사용자입니다." + originalUser.getProvider() + "로그인을 이용해주세요.");
@@ -243,9 +247,14 @@ public class UserService {
 
         String newAccessToken = tokenProvider.create(tokenEntity.getUser());
 
-        return UserResponseDto.builder().userId(tokenEntity.getUser().getUserId())
-                .email(tokenEntity.getUser().getEmail()).nickname(tokenEntity.getUser().getNickname())
-                .token(newAccessToken).refreshToken(refreshToken).build();
+        return UserResponseDto.builder()
+                .userId(tokenEntity.getUser().getUserId())
+                .email(tokenEntity.getUser().getEmail())
+                .nickname(tokenEntity.getUser().getNickname())
+                .provider(tokenEntity.getUser().getProvider())
+                .token(newAccessToken)
+                .refreshToken(refreshToken)
+                .build();
 
     }
 
@@ -277,11 +286,18 @@ public class UserService {
         String newEncodedPassword = passwordEncoder.encode(newPassword);
         System.out.println("newEncodedPassword : " + newEncodedPassword);
 
-        User updateuser = User.builder().club(user.getClub()).nickname(user.getNickname()).password(newEncodedPassword)
-                .saveState(SaveState.Y).email(userDto.getEmail()).userId(user.getUserId()).build();
+        User updateuser = User.builder()
+                .club(user.getClub())
+                .nickname(user.getNickname())
+                .password(newEncodedPassword)
+                .saveState(SaveState.Y)
+                .email(userDto.getEmail())
+                .userId(user.getUserId())
+                .provider(user.getProvider()).build();
 
         return userRepository.save(updateuser);
 
     }
 
 }
+

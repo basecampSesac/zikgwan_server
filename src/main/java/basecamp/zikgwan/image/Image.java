@@ -52,4 +52,8 @@ public class Image extends CreatedEntity {
         this.saveState = saveState;
     }
 
+    public void setSaveState(SaveState saveState) {
+        this.saveState = saveState;
+    }
+
 }
