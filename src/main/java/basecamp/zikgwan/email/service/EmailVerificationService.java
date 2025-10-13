@@ -9,10 +9,12 @@ import basecamp.zikgwan.email.repository.EmailVerificationRepository;
 import java.time.LocalDateTime;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationService {
@@ -24,7 +26,7 @@ public class EmailVerificationService {
      *
      * @param email
      */
-    public void sendVerificationCode(String email, String verifiedType) {
+    public void sendVerificationCode(String email, VerifiedType verifiedType) {
         String code = String.format("%06d", new Random().nextInt(999999));
         LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
 
@@ -34,7 +36,7 @@ public class EmailVerificationService {
                 .expirationTime(expirationTime)
                 .verified(Verified.N)
                 .saveState(SaveState.Y)
-                .verifiedType(VerifiedType.valueOf(verifiedType))
+                .verifiedType(verifiedType)
                 .build();
 
         //인증요청내역 저장
@@ -62,14 +64,14 @@ public class EmailVerificationService {
      * @param code
      * @return
      */
-    public boolean verifyCode(String email, String code, String verifiedType) {
+    public boolean verifyCode(String email, String code, VerifiedType verifiedType) {
 
         //인증만료시간비교를 위한 현재시간
         LocalDateTime verifyTime = LocalDateTime.now();
 
         //이메일로 인증요청 건이 있는지  확인
         EmailVerification verify = verifyRepository.findFirstByEmailAndVerifiedTypeOrderByCreatedAtDesc(email,
-                        VerifiedType.valueOf(verifiedType))
+                        verifiedType)
                 .orElseThrow(() -> new IllegalArgumentException("이메일 인증 요청이 없습니다."));
 
         System.out.println("입력코드 : " + code);
