@@ -2,8 +2,6 @@ package basecamp.zikgwan.review;
 
 import basecamp.zikgwan.common.domain.CreatedEntity;
 import basecamp.zikgwan.common.enums.SaveState;
-import basecamp.zikgwan.review.enums.Rating;
-import basecamp.zikgwan.review.enums.ReviewType;
 import basecamp.zikgwan.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -32,16 +31,11 @@ public class Review extends CreatedEntity {
     @Column(name = "review_id")
     private Long reviewId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "ref_type", nullable = false)
-    private ReviewType reviewType;
-
     @Column(name = "ref_id", nullable = false)
     private Long refId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "rating", nullable = false)
-    private Rating rating;
+    private Double rating;
 
     // 평가한 회원
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,5 +58,14 @@ public class Review extends CreatedEntity {
 
     public void setReviewee(User reviewee) {
         this.reviewee = reviewee;
+    }
+
+    @Builder
+    private Review(Long refId, Double rating, User reviewer, User reviewee, SaveState saveState) {
+        this.refId = refId;
+        this.rating = rating;
+        this.reviewer = reviewer;
+        this.reviewee = reviewee;
+        this.saveState = saveState;
     }
 }

@@ -49,7 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/sse/")
                 || path.startsWith("/api/socialLogin") //소셜로그인
                 || (path.startsWith("/api/images") && req.getMethod().equals("GET")// 이미지 GET 조회만 인증 제외
-                || path.startsWith("/images/")) // 이미지 조회 인증 제외
+                || path.startsWith("/images/") // 이미지 조회 인증 제외
+                || path.startsWith("/api/review")) // 거래 평가 인증 제외
         ) {
             filterChain.doFilter(req, res);
             return;
