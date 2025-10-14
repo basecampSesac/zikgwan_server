@@ -12,6 +12,7 @@ import basecamp.zikgwan.image.enums.ImageType;
 import basecamp.zikgwan.image.service.ImageService;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +35,11 @@ public class CommunityService {
 
     // 모임 등록
     @Transactional
-    public CommunityResponse registerCommunity(Long userId, CommunityRequest request) {
+    public CommunityResponse registerCommunity(Long userId, CommunityRequest request, MultipartFile imageFile)
+            throws IOException {
         // 1. 모임장(User) 조회
         User leader = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("모임장을 찾을 수 없습니다. ID: " + userId));
-
 
         // 2. Community 엔티티 생성
         Community community = Community.builder()
@@ -51,16 +53,18 @@ public class CommunityService {
                 .user(leader)
                 .build();
 
-
         // 3. Community 저장
         Community savedCommunity = communityRepository.save(community);
+
+        imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
 
         // 4. 응답 DTO 생성
         return CommunityResponse.from(savedCommunity);
     }
 
     @Transactional
-    public CommunityResponse updateCommunity(Long userId, Long communityId, CommunityRequest request) throws Exception {
+    public CommunityResponse updateCommunity(Long userId, Long communityId, CommunityRequest request,
+                                             MultipartFile imageFile) throws Exception {
         // 1. 모임 조회
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다. ID: " + communityId));
@@ -73,12 +77,15 @@ public class CommunityService {
         // 3. 모임 정보 수정
         community.updateCommunity(request); // Community 엔티티에 update 메서드 추가 필요
 
+        // dirtyChecking
+        Community savedCommunity = communityRepository.save(community);
+
         // 4. 이미지 처리 (선택적으로 request에 MultipartFile이 있다면)
-        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
-            imageService.uploadImage(ImageType.C, communityId, request.getImageFile(), null);
+        if (imageFile != null) {
+            imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
         }
 
-        return CommunityResponse.from(community);
+        return CommunityResponse.from(savedCommunity);
     }
 
     //Soft Delete (saveState = N)
@@ -94,7 +101,7 @@ public class CommunityService {
         community.setSaveState(SaveState.N);
     }
 
-   // 모임 상태 변경 (ING ↔ END)
+    // 모임 상태 변경 (ING ↔ END)
     @Transactional
     public CommunityState updateCommunityState(Long communityId, Long userId) {
         Community community = communityRepository.findById(communityId)
@@ -112,7 +119,7 @@ public class CommunityService {
         }
 
         // 변경된 상태 저장
-        Community update=communityRepository.save(community);
+        Community update = communityRepository.save(community);
 
         // 저장된 결과의 state 반환
         return update.getState();

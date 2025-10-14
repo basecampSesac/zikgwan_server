@@ -5,16 +5,18 @@ import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.image.Image;
 import basecamp.zikgwan.image.enums.ImageType;
 import basecamp.zikgwan.image.repository.ImageRepository;
-import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageService {
@@ -36,15 +38,13 @@ public class ImageService {
      */
     @Transactional
     public Image uploadImage(ImageType type, Long refId, MultipartFile file, Long ownerId) throws IOException {
-        System.out.println("type : "+ type + ",refId:"+refId +",ownerId : "+ownerId );
-
+        log.info("type : {}, refId : {}, ownerId : {}", type, refId, ownerId);
 
         // 기존 이미지 삭제처리
-        if(type.equals(ImageType.U)) {
+        if (type.equals(ImageType.U)) {
             imageRepository.findByImageTypeAndRefIdAndSaveState(type, ownerId, SaveState.Y)
                     .ifPresent(img -> img.setSaveState(SaveState.N));
-        }
-        else {
+        } else {
             imageRepository.findByImageTypeAndRefIdAndSaveState(type, refId, SaveState.Y)
                     .ifPresent(img -> img.setSaveState(SaveState.N));
         }
