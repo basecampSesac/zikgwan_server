@@ -39,37 +39,12 @@ public class CommunityController {
     /**
      * 모임 등록 POST /api/communities/{userId}
      *
-     * @param request 모임 등록 요청 DTO
-     * @return 등록된 모임 정보
+     * @param request
+     * @param imageFile
+     * @param principal
+     * @return
+     * @throws Exception
      */
-    /*
-    @PostMapping
-    public ResponseEntity<ApiResponse<CommunityResponse>> registerCommunity(
-            @RequestPart("data") CommunityRequest request,    // JSON 데이터
-            @RequestPart(value = "file", required = false) MultipartFile file, // 파일
-            @AuthenticationPrincipal CustomUserPrincipal principal
-    ) throws Exception {
-
-        System.out.println("title :  "+request.getTitle());
-        System.out.println("파일 이름: " + file.getOriginalFilename());
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
-
-        // 파일 DTO에 넣어주거나 서비스로 바로 전달
-        if (file != null) {
-            request.setImageFile(file);
-        }
-
-        CommunityResponse response = communityService.registerCommunity(principal.getUserId(), request);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success(response));
-    }
-    */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CommunityResponse>> registerCommunity(
             @Valid @RequestPart("data") CommunityRequest request,
@@ -93,11 +68,12 @@ public class CommunityController {
 
     /**
      * 모임 수정 PUT /api/SocialLogin/{communityId}
-     *
-     * @param communityId 수정할 모임 ID
-     * @param request     수정 요청 DTO
-     * @param principal   로그인한 사용자 정보
-     * @return 수정된 모임 정보
+     * @param communityId
+     * @param request
+     * @param imageFile
+     * @param principal
+     * @return
+     * @throws Exception
      */
     @PutMapping(value = "/{communityId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CommunityResponse>> updateCommunity(
