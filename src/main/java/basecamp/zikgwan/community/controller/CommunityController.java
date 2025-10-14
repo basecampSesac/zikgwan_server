@@ -15,15 +15,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -71,22 +70,21 @@ public class CommunityController {
                 .body(ApiResponse.success(response));
     }
     */
-
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CommunityResponse>> registerCommunity(
-            @Valid @RequestBody CommunityRequest request,
+            @Valid @RequestPart("data") CommunityRequest request,
+            @RequestPart("image") MultipartFile imageFile,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) throws Exception {
 
-        System.out.println("getTitle "+request.getTitle());
+        System.out.println("getTitle " + request.getTitle());
 
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.fail("로그인이 필요합니다."));
         }
 
-
-        CommunityResponse response = communityService.registerCommunity(principal.getUserId(), request);
+        CommunityResponse response = communityService.registerCommunity(principal.getUserId(), request, imageFile);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -97,14 +95,15 @@ public class CommunityController {
      * 모임 수정 PUT /api/SocialLogin/{communityId}
      *
      * @param communityId 수정할 모임 ID
-     * @param request 수정 요청 DTO
-     * @param principal 로그인한 사용자 정보
+     * @param request     수정 요청 DTO
+     * @param principal   로그인한 사용자 정보
      * @return 수정된 모임 정보
      */
-    @PutMapping("/{communityId}")
+    @PutMapping(value = "/{communityId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CommunityResponse>> updateCommunity(
             @PathVariable Long communityId,
-            @Valid @ModelAttribute CommunityRequest request,
+            @Valid @RequestPart("data") CommunityRequest request,
+            @RequestPart("image") MultipartFile imageFile,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) throws Exception {
         if (principal == null) {
@@ -113,13 +112,14 @@ public class CommunityController {
         }
 
         Long userId = principal.getUserId();
-        CommunityResponse response = communityService.updateCommunity(userId, communityId, request);
+        CommunityResponse response = communityService.updateCommunity(userId, communityId, request, imageFile);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 
     /**
      * 모임 삭제 (soft delete)
+     *
      * @param communityId
      * @param principal
      * @return
@@ -156,7 +156,8 @@ public class CommunityController {
         }
 
         CommunityState newState = communityService.updateCommunityState(communityId, principal.getUserId());
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("모임 상태가 " + newState.getState() + "로 변경되었습니다."));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("모임 상태가 " + newState.getState() + "로 변경되었습니다."));
     }
 
 
