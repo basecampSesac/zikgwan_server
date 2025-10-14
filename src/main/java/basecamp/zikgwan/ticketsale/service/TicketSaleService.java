@@ -1,8 +1,10 @@
 package basecamp.zikgwan.ticketsale.service;
 
+import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.ticketsale.TicketSale;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleRequest;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleResponse;
+import basecamp.zikgwan.ticketsale.enums.TicketState;
 import basecamp.zikgwan.ticketsale.repository.TicketSaleRepository;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
@@ -27,7 +29,7 @@ public class TicketSaleService {
         // 회원만 글 작성 가능
         // TODO 차후 security 설정하면 수정예정
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("게시글 작성 권한이 없습니다."));
 
         TicketSale ticketSale = TicketSale.builder()
                 .title(ticketSaleRequest.getTitle())
@@ -40,6 +42,7 @@ public class TicketSaleService {
                 .stadium(ticketSaleRequest.getStadium())
                 .adjacentSeat(ticketSaleRequest.getAdjacentSeat())
                 .sellerId(user)
+                .state(TicketState.ING)
                 //이미지 경로
                 .build();
 
@@ -55,7 +58,7 @@ public class TicketSaleService {
         // 판매글 작성자만 글 수정 가능
         // TODO 차후 security 설정하면 수정예정
         TicketSale ticketSale = ticketSaleRepository.findById(tsId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 판매글이 없습니다. id=" + tsId));
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다. id=" + tsId));
 
         ticketSale.updateTicketSale(ticketSaleRequest);
 
@@ -64,58 +67,29 @@ public class TicketSaleService {
         return TicketSaleResponse.from(savedTicketSale);
     }
 
-    // 티켓 판매글 삭제
+    // 티켓 판매글 삭제 - (soft delete)
     @Transactional
     public void deleteTicketSale(Long tsId) {
-        if (!ticketSaleRepository.existsById(tsId)) {
-            throw new IllegalArgumentException("해당 판매글이 존재하지 않습니다. id=" + tsId);
-        }
-        ticketSaleRepository.deleteById(tsId);
+        TicketSale ticketSale = ticketSaleRepository.findById(tsId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다. id=" + tsId));
+        ticketSale.updateSaveState(SaveState.N);
     }
 
     // 티켓 판매글 상세 조회
     public TicketSaleResponse findTicketSaleById(Long tsId) {
         TicketSale ticketSale = ticketSaleRepository.findById(tsId)
-                .orElseThrow(() -> new IllegalArgumentException("판매글을 찾을 수 없습니다. id=" + tsId));
+                .filter(t -> t.getSaveState() == SaveState.Y)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다. id=" + tsId));
 
-        User seller = ticketSale.getSellerId();
-
-        return TicketSaleResponse.builder()
-                .tsId(ticketSale.getTsId())
-                .title(ticketSale.getTitle())
-                .description(ticketSale.getDescription())
-                .price(ticketSale.getPrice())
-                .gameDay(ticketSale.getGameDay())
-                .ticketCount(ticketSale.getTicketCount())
-                .home(ticketSale.getHome())
-                .away(ticketSale.getAway())
-                .stadium(ticketSale.getStadium())
-                .adjacentSeat(ticketSale.getAdjacentSeat())
-                .nickname(seller.getNickname())
-//                .rating(ticketSale.get)
-                .createdAt(ticketSale.getCreatedAt())
-                .updatedAt(ticketSale.getUpdatedAt())
-                // TODO 차후 평가 기능 추가 후 수정예정
-//                .rating(seller.getRating())
-                .build();
+        return TicketSaleResponse.from(ticketSale);
     }
 
     // 티켓 판매글 전체 조회
-    public List<TicketSaleResponse> findAllTicketSale() {
+    public List<TicketSaleResponse> findAllTicketSales() {
+
         return ticketSaleRepository.findAll().stream()
-                .map(ticketSale -> {
-                    User seller = ticketSale.getSellerId();
-                    return TicketSaleResponse.builder()
-                            .tsId(ticketSale.getTsId())
-                            .title(ticketSale.getTitle())
-                            .price(ticketSale.getPrice())
-                            .gameDay(ticketSale.getGameDay())
-                            .stadium(ticketSale.getStadium())
-                            .nickname(seller.getNickname())
-                            // TODO 차후 평가 기능 추가 후 수정예정
-                            //.rating(seller.getRating())
-                            .build();
-                })
+                .filter(t -> t.getSaveState() == SaveState.Y)
+                .map(TicketSaleResponse::from)
                 .collect(Collectors.toList());
     }
 }
