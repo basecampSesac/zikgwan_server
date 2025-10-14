@@ -5,8 +5,11 @@ import basecamp.zikgwan.community.Community;
 import basecamp.zikgwan.community.dto.CommunityPageResponse;
 import basecamp.zikgwan.community.dto.CommunityRequest;
 import basecamp.zikgwan.community.dto.CommunityResponse;
+import basecamp.zikgwan.community.enums.CommunityState;
 import basecamp.zikgwan.community.enums.SortType;
 import basecamp.zikgwan.community.repository.CommunityRepository;
+import basecamp.zikgwan.image.enums.ImageType;
+import basecamp.zikgwan.image.service.ImageService;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import java.time.LocalDate;
@@ -24,9 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommunityService {
-
     private final CommunityRepository communityRepository;
     private final UserRepository userRepository;
+    private final ImageService imageService;
 
     // 모임 등록
     @Transactional
@@ -34,6 +37,7 @@ public class CommunityService {
         // 1. 모임장(User) 조회
         User leader = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("모임장을 찾을 수 없습니다. ID: " + userId));
+
 
         // 2. Community 엔티티 생성
         Community community = Community.builder()
@@ -47,11 +51,71 @@ public class CommunityService {
                 .user(leader)
                 .build();
 
+
         // 3. Community 저장
         Community savedCommunity = communityRepository.save(community);
 
         // 4. 응답 DTO 생성
         return CommunityResponse.from(savedCommunity);
+    }
+
+    @Transactional
+    public CommunityResponse updateCommunity(Long userId, Long communityId, CommunityRequest request) throws Exception {
+        // 1. 모임 조회
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다. ID: " + communityId));
+
+        // 2. 로그인 사용자 == 모임장 확인
+        if (!community.getUser().getUserId().equals(userId)) {
+            throw new IllegalAccessException("본인만 수정할 수 있습니다.");
+        }
+
+        // 3. 모임 정보 수정
+        community.updateCommunity(request); // Community 엔티티에 update 메서드 추가 필요
+
+        // 4. 이미지 처리 (선택적으로 request에 MultipartFile이 있다면)
+        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+            imageService.uploadImage(ImageType.C, communityId, request.getImageFile(), null);
+        }
+
+        return CommunityResponse.from(community);
+    }
+
+    //Soft Delete (saveState = N)
+    @Transactional
+    public void deleteCommunity(Long communityId, Long userId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new IllegalArgumentException("모임을 찾을 수 없습니다."));
+
+        if (!community.getUser().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("삭제 권한이 없습니다.");
+        }
+
+        community.setSaveState(SaveState.N);
+    }
+
+   // 모임 상태 변경 (ING ↔ END)
+    @Transactional
+    public CommunityState updateCommunityState(Long communityId, Long userId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new IllegalArgumentException("모임을 찾을 수 없습니다."));
+
+        if (!community.getUser().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("모임 상태를 변경할 권한이 없습니다.");
+        }
+
+        // 현재 상태 반전
+        if (community.getState() == CommunityState.ING) {
+            community.setState(CommunityState.END);
+        } else {
+            community.setState(CommunityState.ING);
+        }
+
+        // 변경된 상태 저장
+        Community update=communityRepository.save(community);
+
+        // 저장된 결과의 state 반환
+        return update.getState();
     }
 
     // 전체 모임 목록 조회
