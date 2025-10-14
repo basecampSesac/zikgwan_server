@@ -2,6 +2,7 @@ package basecamp.zikgwan.ticketsale;
 
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
+import basecamp.zikgwan.ticketsale.dto.TicketSaleRequest;
 import basecamp.zikgwan.ticketsale.enums.Seat;
 import basecamp.zikgwan.ticketsale.enums.TicketState;
 import basecamp.zikgwan.user.domain.User;
@@ -18,10 +19,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.ColumnDefault;
+
 
 @Entity
 @Getter
@@ -72,6 +75,39 @@ public class TicketSale extends BaseEntity {
     @ColumnDefault("'Y'")
     @Column(name = "save_state", nullable = false)
     private SaveState saveState;
+
+    @Builder
+    private TicketSale(String title, String description, Integer price, LocalDateTime gameDay, Integer ticketCount,
+                       String home, String away, String stadium, Seat adjacentSeat, TicketState state,
+                       User sellerId) {
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.gameDay = gameDay;
+        this.ticketCount = ticketCount;
+        this.home = home;
+        this.away = away;
+        this.stadium = stadium;
+        this.adjacentSeat = adjacentSeat;
+        this.state = TicketState.ING;
+        this.saveState = SaveState.Y;
+        this.sellerId = sellerId;
+    }
+
+    // 티켓 판매글 수정 관련 Setter
+    public void updateTicketSale(TicketSaleRequest dto) {
+        this.title = dto.getTitle();
+        this.description = dto.getDescription();
+        this.price = dto.getPrice();
+        this.gameDay = dto.getGameDay();
+        this.ticketCount = dto.getTicketCount();
+        this.home = dto.getHome();
+        this.away = dto.getAway();
+        this.stadium = dto.getStadium();
+        this.adjacentSeat = dto.getAdjacentSeat();
+        this.state = dto.getState();
+    }
+
 
     // 판매자와 N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)
