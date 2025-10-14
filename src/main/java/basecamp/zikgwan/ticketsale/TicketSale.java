@@ -110,6 +110,11 @@ public class TicketSale extends BaseEntity {
         this.state = dto.getState();
     }
 
+    // soft delete (게시글 저장 상태 변경)
+    public void updateSaveState(SaveState saveState) {
+        this.saveState = saveState;
+    }
+
 
     // 판매자와 N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)

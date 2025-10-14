@@ -45,22 +45,22 @@ public class TicketSaleController {
 
     //티켓 판매글 삭제
     @DeleteMapping("/{tsId}")
-    public ResponseEntity<Void> deleteTicketSale(@PathVariable Long tsId) {
+    public ResponseEntity<String> deleteTicketSale(@PathVariable Long tsId) {
         ticketSaleService.deleteTicketSale(tsId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("티켓 판매글 삭제 성공: id=" + tsId);
     }
 
     // 티켓 판매글 상세 조회
     @GetMapping("/{tsId}")
     public ResponseEntity<TicketSaleResponse> getTicketSaleById(@PathVariable Long tsId) {
-        TicketSaleResponse dto = ticketSaleService.findTicketSaleById(tsId);
-        return ResponseEntity.ok(dto);
+//        TicketSaleResponse dto = ticketSaleService.findTicketSaleById(tsId);
+        return ResponseEntity.ok(ticketSaleService.findTicketSaleById(tsId));
     }
 
     // 티켓 판매글 전체 조회
     @GetMapping
     public ResponseEntity<List<TicketSaleResponse>> getAllTicketSale() {
-        List<TicketSaleResponse> ticketSale = ticketSaleService.findAllTicketSale();
+        List<TicketSaleResponse> ticketSale = ticketSaleService.findAllTicketSales();
         return ResponseEntity.ok(ticketSale);
     }
 }
