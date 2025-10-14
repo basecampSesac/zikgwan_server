@@ -1,12 +1,14 @@
 package basecamp.zikgwan.notification.controller;
 
 import basecamp.zikgwan.common.dto.ApiResponse;
+import basecamp.zikgwan.config.security.CustomUserPrincipal;
 import basecamp.zikgwan.notification.dto.NotificationResponseDto;
 import basecamp.zikgwan.notification.service.NotificationService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,15 +23,15 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    // TODO 시큐리티 적용 시 userId 빠짐
-
     /**
      * 해당 사용자의 모든 알림 목록 조회 읽지 않은 알림은 readAt = null
      */
-    @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<List<NotificationResponseDto>>> getNotifications(@PathVariable Long userId) {
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<NotificationResponseDto>>> getNotifications(
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        List<NotificationResponseDto> notificationResponseDtos = notificationService.getNotifications(userId);
+        List<NotificationResponseDto> notificationResponseDtos = notificationService.getNotifications(
+                principal.getUserId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -39,10 +41,11 @@ public class NotificationController {
     /**
      * 알림 읽음 처리
      */
-    @PatchMapping("/{userId}/{id}")
-    public ResponseEntity<ApiResponse<String>> readNotification(@PathVariable Long userId, @PathVariable Long id) {
+    @PatchMapping("/read/{id}")
+    public ResponseEntity<ApiResponse<String>> readNotification(@AuthenticationPrincipal CustomUserPrincipal principal,
+                                                                @PathVariable Long id) {
 
-        String message = notificationService.readNotification(userId, id);
+        String message = notificationService.readNotification(principal.getUserId(), id);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -52,10 +55,11 @@ public class NotificationController {
     /**
      * 알림 삭제
      */
-    @DeleteMapping("/{userId}/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteNotification(@PathVariable Long userId, @PathVariable Long id){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteNotification(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long id) {
 
-        String message = notificationService.deleteNotification(userId, id);
+        String message = notificationService.deleteNotification(principal.getUserId(), id);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
