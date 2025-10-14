@@ -42,7 +42,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/match/")
                 || path.startsWith("/api/chatroom/user") && req.getMethod().equals("GET")
                 || path.startsWith("/api/chatroom/chat/ticket/desc") && req.getMethod().equals("GET")
-                || path.startsWith("/api/notification/")
                 || path.startsWith("/sub/")
                 || path.equals("/")
                 || path.startsWith("/ws-connect") // WebSocket은 인증 제외
