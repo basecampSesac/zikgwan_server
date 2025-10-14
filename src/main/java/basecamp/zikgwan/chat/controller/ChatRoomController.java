@@ -73,8 +73,9 @@ public class ChatRoomController {
      */
     @PostMapping("/community/{communityId}")
     public ResponseEntity<ApiResponse<ChatRoomDto>> createCommunityRoom(@PathVariable Long communityId,
-                                                                        @RequestParam String roomName) {
-        ChatRoomDto chatRoomDto = chatService.createCommunityRoom(communityId, roomName);
+                                                                        @RequestParam String roomName,
+                                                                        @AuthenticationPrincipal CustomUserPrincipal principal) {
+        ChatRoomDto chatRoomDto = chatService.createCommunityRoom(communityId, roomName, principal.getUserId());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -86,8 +87,9 @@ public class ChatRoomController {
      */
     @PostMapping("/ticket/{tsId}")
     public ResponseEntity<ApiResponse<ChatRoomDto>> createTicketRoom(@PathVariable Long tsId,
-                                                                     @RequestParam String roomName) {
-        ChatRoomDto chatRoomDto = chatService.createTicketRoom(tsId, roomName);
+                                                                     @RequestParam String roomName,
+                                                                     @AuthenticationPrincipal CustomUserPrincipal principal) {
+        ChatRoomDto chatRoomDto = chatService.createTicketRoom(tsId, roomName, principal.getUserId());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

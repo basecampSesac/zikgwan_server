@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ChatService {
 
     private final ChatRepository chatRepository;
@@ -45,7 +46,6 @@ public class ChatService {
     private final SseService sseService;
 
     // 모든 채팅방 목록 불러오기
-    @Transactional(readOnly = true)
     public List<ChatRoomDto> getChatRooms() {
         List<ChatRoom> chatRooms = chatRoomRepository.findAll();
         return chatRooms.stream().map(c -> ChatRoomDto.builder().
@@ -57,8 +57,6 @@ public class ChatService {
     }
 
     // 사용자의 모든 채팅방 목록 불러오기
-    //TODO 시큐리티 세팅 필요 -> userId 가져올 필요 없어짐
-    @Transactional(readOnly = true)
     public List<ChatRoomDto> getUserChatRooms(Long userId) {
 
         List<ChatRoom> rooms = chatRoomUserRepository.findChatRoomsByUserId(userId);
@@ -73,9 +71,13 @@ public class ChatService {
 
     // 채팅방 이름으로 채팅방 생성
 
-    /// 그룹
+    // 그룹
     @Transactional
-    public ChatRoomDto createCommunityRoom(Long communityId, String roomName) {
+    public ChatRoomDto createCommunityRoom(Long communityId, String roomName, Long userId) {
+        // 로그인한 사용자 존재 확인
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+
         ChatRoom chatRoom = ChatRoom.builder()
                 .roomName(roomName)
                 .type(RoomType.C)
@@ -93,9 +95,12 @@ public class ChatService {
                 .build();
     }
 
-    /// 티켓 채팅방
+    // 티켓 채팅방
     @Transactional
-    public ChatRoomDto createTicketRoom(Long tsId, String roomName) {
+    public ChatRoomDto createTicketRoom(Long tsId, String roomName, Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+
         ChatRoom chatRoom = ChatRoom.builder()
                 .roomName(roomName)
                 .type(RoomType.T)
@@ -114,7 +119,6 @@ public class ChatService {
     }
 
     // 채팅방에 참여한 user 조회
-    @Transactional(readOnly = true)
     public List<UserInfoDto> getUsers(Long roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
@@ -133,7 +137,6 @@ public class ChatService {
 
     // 처음 채팅방 입장
     // 처음 채팅방에 들어갈때만 사용하기 때문에 이후 채팅방 들어가면 호출하면 안 됨
-    //TODO 시큐리티 세팅 필요 -> userId 가져올 필요 없어짐
     @Transactional
     public ChatUserDto enterRoom(Long roomId, String nickname) {
 
@@ -146,9 +149,8 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
-        // 이미 user가 들어간 해당 채팅방이 존재할 경우 예외 던짐
+        // 이미 user가 들어간 경우 join 호출
         if (chatRoomUserRepository.existsByChatRoomAndUser(chatRoom, user)) {
-//            throw new IllegalArgumentException("이미 방이 존재합니다.");
 
             return joinRoom(roomId, user.getUserId());
         }
@@ -205,12 +207,6 @@ public class ChatService {
             chatRepository.deleteAllByRoomId(String.valueOf(roomId));
         }
 
-        //TODO 반환값 재설정 -> 현재 String
-//        return ChatUserDto.builder()
-//                .roomId(chatRoomUser.getChatRoom().getRoomId())
-//                .userId(chatRoomUser.getUser().getUserId())
-//                .build();
-
         return "채팅방 나가기 완료";
     }
 
@@ -250,8 +246,6 @@ public class ChatService {
 
 
     // 채팅 내용 리스트
-    // TODO 시큐리티 세팅 필요 -> userId 가져올 필요 없어짐
-    @Transactional(readOnly = true)
     public List<ChatDto> getChatMessages(Long roomId, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
