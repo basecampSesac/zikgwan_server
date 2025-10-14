@@ -90,17 +90,19 @@ public class UserService {
 
         User chkUser = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원"));
 
-        if (user.getPassword() == null) {
-            throw new IllegalArgumentException("현재비밀번호 입력안됨");
-        }
+        if ("local".equals(chkUser.getProvider())) {
+            if (user.getPassword() == null) {
+                throw new IllegalArgumentException("현재비밀번호 입력안됨");
+            }
 
-        if (newPassword != null && !newPassword.equals(newPasswordConfirm)) {
-            throw new IllegalArgumentException("새로운비밀번호와 새로운비밀번호 확인  불일치");
-        }
+            if (newPassword != null && !newPassword.equals(newPasswordConfirm)) {
+                throw new IllegalArgumentException("새로운비밀번호와 새로운비밀번호확인 불일치");
+            }
 
-        if (!passwordEncoder.matches(user.getPassword(), chkUser.getPassword())) {
+            if (!passwordEncoder.matches(user.getPassword(), chkUser.getPassword())) {
 
-            throw new IllegalArgumentException("현재비밀번호 불일치");
+                throw new IllegalArgumentException("현재비밀번호 불일치");
+            }
         }
 
         String updateNickname = null;
@@ -115,13 +117,15 @@ public class UserService {
         }
 
         String newEncodedPassword = null;
-        if (newPassword != null && !newPassword.isEmpty()) {
-            newEncodedPassword = passwordEncoder.encode(newPassword);
-            //새 비밀번호가 기존 비밀번호와 동일한지 확인
-            if (passwordEncoder.matches(newPassword, chkUser.getPassword())) {
-                throw new IllegalArgumentException("새 비밀번호는 기존 비밀번호와 달라야 합니다.");
+        if ("local".equals(chkUser.getProvider())) {
+            if (newPassword != null && !newPassword.isEmpty()) {
+                newEncodedPassword = passwordEncoder.encode(newPassword);
+                //새 비밀번호가 기존 비밀번호와 동일한지 확인
+                if (passwordEncoder.matches(newPassword, chkUser.getPassword())) {
+                    throw new IllegalArgumentException("새 비밀번호는 기존 비밀번호와 달라야 합니다.");
+                }
             }
-        } else {
+        }else {
             newEncodedPassword = chkUser.getPassword();
         }
 

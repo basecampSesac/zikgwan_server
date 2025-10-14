@@ -10,10 +10,14 @@ import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.dto.UserRequestDto;
 import basecamp.zikgwan.user.dto.UserResponseDto;
 import basecamp.zikgwan.user.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -129,7 +133,8 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<UserResponseDto>> userLogin(@RequestBody @Valid UserRequestDto userDTO) {
+    public ResponseEntity<ApiResponse<UserResponseDto>> userLogin(@RequestBody @Valid UserRequestDto userDTO,
+                                                                  HttpServletResponse response) {
         User user = userService.userLogin(userDTO.getEmail(), userDTO.getPassword(), passwordEncoder);
 
         // 로그인 검사 통과!
@@ -149,9 +154,21 @@ public class UserController {
 
             userService.refreshTokenSave(tokenEntity);
 
-            final UserResponseDto responseUserDTO = UserResponseDto.builder().email(user.getEmail())
-                    .userId(user.getUserId()).nickname(user.getNickname()).token(token) // 토큰 설정
-                    .refreshToken(refreshToken) // 리프레쉬토큰
+            //Refresh Token을 HttpOnly 쿠키로 저장
+            Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
+            refreshCookie.setHttpOnly(true); // JavaScript 접근 불가
+            refreshCookie.setSecure(false);  // HTTPS 시 true
+            refreshCookie.setPath("/");
+            refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
+            refreshCookie.setAttribute("SameSite", "None"); // 크로스 도메인 쿠키 허용
+            response.addCookie(refreshCookie);
+
+            // ✅ Access Token과 사용자 정보는 본문으로 반환
+            final UserResponseDto responseUserDTO = UserResponseDto.builder()
+                    .email(user.getEmail())
+                    .userId(user.getUserId())
+                    .nickname(user.getNickname())
+                    .token(token) // 토큰
                     .build();
 
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseUserDTO));
@@ -191,7 +208,8 @@ public class UserController {
      * @return
      */
     @GetMapping("/logout")
-    public ResponseEntity<ApiResponse<Boolean>> logout(@AuthenticationPrincipal CustomUserPrincipal principal) {
+    public ResponseEntity<ApiResponse<Boolean>> logout(@AuthenticationPrincipal CustomUserPrincipal principal,
+                                                       HttpServletResponse response) {
 
         //로그인된 사용자 정보
         Long userId = principal.getUserId();
@@ -199,7 +217,15 @@ public class UserController {
         if (userId < 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("사용자 정보가 유효하지 않습니다."));
         }
+
+        // DB에서 Refresh Token 삭제
         Boolean successData = userService.deleteRefreshTokenByUserId(userId);
+
+        // 쿠키 삭제
+        Cookie deleteCookie = new Cookie("refreshToken", null);
+        deleteCookie.setPath("/");
+        deleteCookie.setMaxAge(0);
+        response.addCookie(deleteCookie);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(successData));
     }
@@ -229,14 +255,37 @@ public class UserController {
     /**
      * 리프래쉬 토큰으로 액세스 토큰 생성
      *
-     * @param body
+     * @param request
      * @return
      */
     @PostMapping("/refresh/login")
-    public ResponseEntity<ApiResponse<UserResponseDto>> refresh(@RequestBody Map<String, String> body) {
-        String refreshToken = body.get("refreshToken");
+    public ResponseEntity<ApiResponse<UserResponseDto>> refresh(HttpServletRequest request,
+                                                                HttpServletResponse response) {
 
+        // 쿠키에서 refreshToken 꺼내기
+        String refreshToken = Arrays.stream(request.getCookies() != null ? request.getCookies() : new Cookie[]{})
+                .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
+
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("Refresh Token이 없습니다."));
+        }
+
+        // Refresh Token을 이용해 Access Token 재발급
         UserResponseDto responseDto = userService.refreshAccessToken(refreshToken);
+
+        if (responseDto == null) {
+            // 쿠키 무효화
+            Cookie expiredCookie = new Cookie("refreshToken", null);
+            expiredCookie.setPath("/");
+            expiredCookie.setMaxAge(0);
+            response.addCookie(expiredCookie);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("유효하지 않은 리프레시 토큰입니다."));
+        }
 
         return ResponseEntity.ok(ApiResponse.success(responseDto));
     }

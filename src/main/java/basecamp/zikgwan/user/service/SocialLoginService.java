@@ -48,7 +48,7 @@ public class SocialLoginService {
         } else {
             existingProvider = user.getProvider();
             // 이미 존재
-            if (existingProvider == null) {
+            if (existingProvider.equals("local")) {
                 //일반 이메일 회원이 소셜 로그인 시도한 경우
                 throw new IllegalArgumentException("해당 이메일은 일반 회원가입으로 이미 존재합니다. 이메일 로그인으로 시도해주세요.");
             }
@@ -56,6 +56,9 @@ public class SocialLoginService {
             if (!existingProvider.equals(provider)) {
                 // 다른 소셜 계정으로 가입된 경우
                 throw new IllegalArgumentException("해당 이메일은 " + existingProvider + " 계정으로 이미 가입되어 있습니다.");
+            }
+            if(user.getSaveState().equals(SaveState.N)){
+                throw new IllegalArgumentException("해당 이메일은 탈퇴된 메일계정입니다.");
             }
 
         }
