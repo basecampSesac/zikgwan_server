@@ -61,7 +61,8 @@ public class Review extends CreatedEntity {
     }
 
     @Builder
-    private Review(Long refId, Double rating, User reviewer, User reviewee, SaveState saveState) {
+    private Review(Long reviewId, Long refId, Double rating, User reviewer, User reviewee, SaveState saveState) {
+        this.reviewId = reviewId;
         this.refId = refId;
         this.rating = rating;
         this.reviewer = reviewer;

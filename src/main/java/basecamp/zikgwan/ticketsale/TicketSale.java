@@ -77,9 +77,11 @@ public class TicketSale extends BaseEntity {
     private SaveState saveState;
 
     @Builder
-    private TicketSale(String title, String description, Integer price, LocalDateTime gameDay, Integer ticketCount,
+    private TicketSale(Long tsId, String title, String description, Integer price, LocalDateTime gameDay,
+                       Integer ticketCount,
                        String home, String away, String stadium, Seat adjacentSeat, TicketState state,
                        User sellerId) {
+        this.tsId = tsId;
         this.title = title;
         this.description = description;
         this.price = price;
@@ -89,7 +91,7 @@ public class TicketSale extends BaseEntity {
         this.away = away;
         this.stadium = stadium;
         this.adjacentSeat = adjacentSeat;
-        this.state = TicketState.ING;
+        this.state = state;
         this.saveState = SaveState.Y;
         this.sellerId = sellerId;
     }
@@ -123,6 +125,11 @@ public class TicketSale extends BaseEntity {
 
     public void setSeller(User user) {
         this.sellerId = user;
+    }
+
+    // 구매자 지정
+    public void updateBuyerId(Long buyerId) {
+        this.buyerId = buyerId;
     }
 
 //    public void setBuyer(User user) {
