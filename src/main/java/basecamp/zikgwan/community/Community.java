@@ -2,6 +2,7 @@ package basecamp.zikgwan.community;
 
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
+import basecamp.zikgwan.community.dto.CommunityRequest;
 import basecamp.zikgwan.community.enums.CommunityState;
 import basecamp.zikgwan.user.domain.User;
 import jakarta.persistence.Column;
@@ -58,7 +59,7 @@ public class Community extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'ING'")
     @Column(name = "state", length = 3, nullable = false)
-    private CommunityState state;
+    private CommunityState state;//모임 상태(ING- 진행중, END-완료)
 
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'Y'")
@@ -87,5 +88,25 @@ public class Community extends BaseEntity {
         this.user = user;
         this.saveState = SaveState.Y;
         this.state = CommunityState.ING;
+    }
+
+    public void updateCommunity(CommunityRequest request) {
+        this.title = request.getTitle();
+        this.description = request.getDescription();
+        this.date = request.getDate();
+        this.stadium = request.getStadium();
+        this.home = request.getHome();
+        this.away = request.getAway();
+        this.memberCount = request.getMemberCount();
+    }
+
+    //저장상태변경
+    public void setSaveState(SaveState saveState){
+        this.saveState=saveState;
+    }
+
+    //모임상태변경
+    public void setState(CommunityState state){
+        this.state=state;
     }
 }

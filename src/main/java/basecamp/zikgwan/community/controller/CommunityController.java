@@ -4,8 +4,10 @@ import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.community.dto.CommunityPageResponse;
 import basecamp.zikgwan.community.dto.CommunityRequest;
 import basecamp.zikgwan.community.dto.CommunityResponse;
+import basecamp.zikgwan.community.enums.CommunityState;
 import basecamp.zikgwan.community.enums.SortType;
 import basecamp.zikgwan.community.service.CommunityService;
+import basecamp.zikgwan.config.security.CustomUserPrincipal;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -13,14 +15,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/communities")
@@ -32,21 +39,103 @@ public class CommunityController {
     /**
      * 모임 등록 POST /api/communities/{userId}
      *
-     * @param request 모임 등록 요청 DTO
-     * @return 등록된 모임 정보
+     * @param request
+     * @param imageFile
+     * @param principal
+     * @return
+     * @throws Exception
      */
-    // TODO security 설정 시 userId 삭제
-    @PostMapping("/{userId}")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CommunityResponse>> registerCommunity(
-            @PathVariable Long userId,
-            @Valid @RequestBody CommunityRequest request
-    ) {
-        CommunityResponse response = communityService.registerCommunity(userId, request);
+            @Valid @RequestPart("data") CommunityRequest request,
+            @RequestPart("image") MultipartFile imageFile,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) throws Exception {
+
+        System.out.println("getTitle " + request.getTitle());
+
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("로그인이 필요합니다."));
+        }
+
+        CommunityResponse response = communityService.registerCommunity(principal.getUserId(), request, imageFile);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(response));
     }
+
+    /**
+     * 모임 수정 PUT /api/SocialLogin/{communityId}
+     * @param communityId
+     * @param request
+     * @param imageFile
+     * @param principal
+     * @return
+     * @throws Exception
+     */
+    @PutMapping(value = "/{communityId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<CommunityResponse>> updateCommunity(
+            @PathVariable Long communityId,
+            @Valid @RequestPart("data") CommunityRequest request,
+            @RequestPart("image") MultipartFile imageFile,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) throws Exception {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("로그인이 필요합니다."));
+        }
+
+        Long userId = principal.getUserId();
+        CommunityResponse response = communityService.updateCommunity(userId, communityId, request, imageFile);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
+    }
+
+    /**
+     * 모임 삭제 (soft delete)
+     *
+     * @param communityId
+     * @param principal
+     * @return
+     */
+    @DeleteMapping("/{communityId}")
+    public ResponseEntity<ApiResponse<String>> deleteCommunity(
+            @PathVariable Long communityId,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("로그인이 필요합니다."));
+        }
+
+        communityService.deleteCommunity(communityId, principal.getUserId());
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("모임이 삭제되었습니다."));
+    }
+
+    /**
+     * 모임 상태 변경 (ING > END)
+     *
+     * @param communityId
+     * @param principal
+     * @return
+     */
+    @PutMapping("/state/{communityId}")
+    public ResponseEntity<ApiResponse<String>> toggleCommunityState(
+            @PathVariable Long communityId,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("로그인이 필요합니다."));
+        }
+
+        CommunityState newState = communityService.updateCommunityState(communityId, principal.getUserId());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("모임 상태가 " + newState.getState() + "로 변경되었습니다."));
+    }
+
 
     /**
      * 전체 모임 목록 조회 페이징 기본값 최신순 RECENT 모임 인원 많은 순 MOST 모임 인원 적은 순 LEAST

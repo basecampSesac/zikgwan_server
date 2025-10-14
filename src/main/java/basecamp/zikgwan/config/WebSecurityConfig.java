@@ -59,10 +59,13 @@ public class WebSecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // 모든 출처, 메소드, 헤더에 대해 허용하는 cors 설정
-        config.setAllowCredentials(true);
+        config.setAllowCredentials(true); //쿠키전송 허용
         config.setAllowedOriginPatterns(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT", "PATCH"));
         config.setAllowedHeaders((Arrays.asList("*")));
+        config.setExposedHeaders(Arrays.asList("Authorization"));
+        config.setMaxAge(3600L);
+        config.setAllowPrivateNetwork(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
