@@ -56,10 +56,15 @@ public class CommunityService {
         // 3. Community 저장
         Community savedCommunity = communityRepository.save(community);
 
-        imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
+        String imageUrl = null;
+        if (imageFile != null && !imageFile.isEmpty()) {
+            imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
+            imageUrl = imageService.getImage(ImageType.C,  savedCommunity.getCommunityId());
+            System.out.println("imageUrl : " + imageUrl);
+        }
 
         // 4. 응답 DTO 생성
-        return CommunityResponse.from(savedCommunity);
+        return CommunityResponse.from(savedCommunity, imageUrl);
     }
 
     @Transactional
@@ -81,11 +86,14 @@ public class CommunityService {
         Community savedCommunity = communityRepository.save(community);
 
         // 4. 이미지 처리 (선택적으로 request에 MultipartFile이 있다면)
+        String imageUrl = null;
         if (imageFile != null) {
             imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
+            imageUrl = imageService.getImage(ImageType.C,  savedCommunity.getCommunityId());
+            System.out.println("imageUrl : " + imageUrl);
         }
 
-        return CommunityResponse.from(savedCommunity);
+        return CommunityResponse.from(savedCommunity,imageUrl);
     }
 
     //Soft Delete (saveState = N)
@@ -145,12 +153,15 @@ public class CommunityService {
     }
 
     // 특정 모임 상세 조회
-
     public CommunityResponse getCommunityById(Long communityId) {
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다. ID: " + communityId));
 
-        return CommunityResponse.from(community);
+        String imageUrl = null;
+        imageUrl = imageService.getImage(ImageType.C,  communityId);
+        System.out.println("모임상세조회 imageUrl : " + imageUrl);
+
+        return CommunityResponse.from(community,imageUrl);
     }
     // 제목, 모임 구단, 구장, 경기 날짜를 선택 입력으로 필터링하여 조회
 

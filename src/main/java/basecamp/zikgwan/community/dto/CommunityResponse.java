@@ -29,8 +29,15 @@ public class CommunityResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    //imageUrl 있는 경우
+    private String imageUrl;
 
     public static CommunityResponse from(Community community) {
+        return from(community, null); // 기본적으로 imageUrl 없음
+    }
+
+
+    public static CommunityResponse from(Community community, String imageUrl) {
         return CommunityResponse.builder()
                 .communityId(community.getCommunityId())
                 .title(community.getTitle())
@@ -45,6 +52,7 @@ public class CommunityResponse {
                 .saveState(community.getSaveState())
                 .createdAt(community.getCreatedAt())
                 .updatedAt(community.getUpdatedAt())
+                .imageUrl(imageUrl)
                 .build();
     }
 }

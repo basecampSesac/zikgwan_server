@@ -68,6 +68,7 @@ public class CommunityController {
 
     /**
      * 모임 수정 PUT /api/SocialLogin/{communityId}
+     *
      * @param communityId
      * @param request
      * @param imageFile
