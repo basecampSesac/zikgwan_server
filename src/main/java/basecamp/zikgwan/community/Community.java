@@ -56,6 +56,9 @@ public class Community extends BaseEntity {
     @ColumnDefault("'0'")
     private Integer memberCount;
 
+    @Column(name = "is_full")
+    private Boolean isFull;
+
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'ING'")
     @Column(name = "state", length = 3, nullable = false)
@@ -77,7 +80,7 @@ public class Community extends BaseEntity {
 
     @Builder
     private Community(String title, String description, LocalDateTime date, String stadium, String home, String away,
-                      Integer memberCount, User user) {
+                      Integer memberCount, Boolean isFull, User user) {
         this.title = title;
         this.description = description;
         this.date = date;
@@ -85,6 +88,7 @@ public class Community extends BaseEntity {
         this.home = home;
         this.away = away;
         this.memberCount = memberCount;
+        this.isFull = isFull;
         this.user = user;
         this.saveState = SaveState.Y;
         this.state = CommunityState.ING;
@@ -101,12 +105,12 @@ public class Community extends BaseEntity {
     }
 
     //저장상태변경
-    public void setSaveState(SaveState saveState){
-        this.saveState=saveState;
+    public void setSaveState(SaveState saveState) {
+        this.saveState = saveState;
     }
 
     //모임상태변경
-    public void setState(CommunityState state){
-        this.state=state;
+    public void setState(CommunityState state) {
+        this.state = state;
     }
 }
