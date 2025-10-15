@@ -138,9 +138,12 @@ public class CommunityService {
 
         Page<Community> communities = checkSortBy(sortType, pageable);
 
-        List<CommunityResponse> content = communities
-                .map(CommunityResponse::from)
-                .getContent();
+        List<CommunityResponse> content = communities.stream()
+                .map(c -> {
+                    String imageUrl = imageService.getImage(ImageType.C, c.getCommunityId());
+                    return CommunityResponse.from(c, imageUrl);
+                })
+                .collect(Collectors.toList());
 
         return CommunityPageResponse.builder()
                 .content(content)
@@ -185,7 +188,10 @@ public class CommunityService {
         }
 
         return communities.stream()
-                .map(c -> CommunityResponse.from(c))
+                .map(c -> {
+                    String imageUrl = imageService.getImage(ImageType.C, c.getCommunityId());
+                    return CommunityResponse.from(c, imageUrl);
+                })
                 .collect(Collectors.toList());
     }
 
