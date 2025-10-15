@@ -86,6 +86,7 @@ public class UserController {
         User registeredUser = userService.registerUser(user);
         UserResponseDto rsUserDTO = UserResponseDto.builder().email(registeredUser.getEmail())
                 .nickname(registeredUser.getNickname()).userId(registeredUser.getUserId())
+                .provider(registeredUser.getProvider())
                 .club(registeredUser.getClub()).build();
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(rsUserDTO));
@@ -113,14 +114,16 @@ public class UserController {
         }
 
         User user = User.builder().email(userDTO.getEmail()).nickname(userDTO.getNickname())
-                .password(userDTO.getPassword()).club(userDTO.getClub()).saveState(SaveState.Y).build();
+                .password(userDTO.getPassword()).club(userDTO.getClub()).saveState(SaveState.Y)
+                .build();
         String newPassword = userDTO.getNewpassword();
         String newPasswordConfirm = userDTO.getNewpasswordconfirm();
 
         User updateUser = userService.updateUser(id, user, newPassword, newPasswordConfirm);
 
         UserResponseDto rsUserDTO = UserResponseDto.builder().email(updateUser.getEmail())
-                .nickname(updateUser.getNickname()).userId(updateUser.getUserId()).club(updateUser.getClub()).build();
+                .nickname(updateUser.getNickname()).userId(updateUser.getUserId()).club(updateUser.getClub())
+                .provider(updateUser.getProvider()).build();
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(rsUserDTO));
 
@@ -163,7 +166,7 @@ public class UserController {
             refreshCookie.setAttribute("SameSite", "None"); // 크로스 도메인 쿠키 허용
             response.addCookie(refreshCookie);
 
-            // ✅ Access Token과 사용자 정보는 본문으로 반환
+            // Access Token과 사용자 정보는 본문으로 반환
             final UserResponseDto responseUserDTO = UserResponseDto.builder()
                     .email(user.getEmail())
                     .userId(user.getUserId())
