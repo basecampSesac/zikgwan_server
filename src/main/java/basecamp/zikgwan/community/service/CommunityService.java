@@ -51,6 +51,7 @@ public class CommunityService {
                 .away(request.getAway())
                 .memberCount(request.getMemberCount())
                 .user(leader)
+                .isFull(false)
                 .build();
 
         // 3. Community 저장

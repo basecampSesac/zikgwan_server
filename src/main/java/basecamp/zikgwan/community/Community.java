@@ -56,8 +56,10 @@ public class Community extends BaseEntity {
     @ColumnDefault("'0'")
     private Integer memberCount;
 
-    @Column(name = "is_full")
-    private Boolean isFull;
+    // 채팅방 참여 가능 여부
+    @Column(name = "is_full", nullable = false)
+    @ColumnDefault("false")
+    private Boolean isFull = false;
 
     @Enumerated(EnumType.STRING)
     @ColumnDefault("'ING'")

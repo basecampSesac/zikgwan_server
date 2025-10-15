@@ -29,6 +29,7 @@ public class CommunityResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String imageUrl;
+    private Boolean isFull;
 
 
     public static CommunityResponse from(Community community, String imageUrl) {
@@ -47,6 +48,7 @@ public class CommunityResponse {
                 .createdAt(community.getCreatedAt())
                 .updatedAt(community.getUpdatedAt())
                 .imageUrl(imageUrl)
+                .isFull(community.getIsFull())
                 .build();
     }
 }
