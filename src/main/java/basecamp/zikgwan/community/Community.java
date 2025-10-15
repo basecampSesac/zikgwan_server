@@ -106,6 +106,10 @@ public class Community extends BaseEntity {
         this.memberCount = request.getMemberCount();
     }
 
+    public void updateIsFull(Boolean full) {
+        isFull = full;
+    }
+
     //저장상태변경
     public void setSaveState(SaveState saveState) {
         this.saveState = saveState;
