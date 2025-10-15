@@ -13,6 +13,8 @@ import basecamp.zikgwan.chat.enums.RoomType;
 import basecamp.zikgwan.chat.repository.ChatRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
+import basecamp.zikgwan.community.Community;
+import basecamp.zikgwan.community.repository.CommunityRepository;
 import basecamp.zikgwan.notification.dto.EventPayload;
 import basecamp.zikgwan.notification.service.SseService;
 import basecamp.zikgwan.ticketsale.TicketSale;
@@ -41,6 +43,7 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final UserRepository userRepository;
     private final TicketSaleRepository ticketSaleRepository;
+    private final CommunityRepository communityRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomUserRepository chatRoomUserRepository;
     private final SseService sseService;
@@ -48,12 +51,9 @@ public class ChatService {
     // 모든 채팅방 목록 불러오기
     public List<ChatRoomDto> getChatRooms() {
         List<ChatRoom> chatRooms = chatRoomRepository.findAll();
-        return chatRooms.stream().map(c -> ChatRoomDto.builder().
-                roomId(c.getRoomId())
-                .roomName(c.getRoomName())
-                .type(c.getType())
-                .typeId(c.getTypeId())
-                .userCount(c.getUserCount()).build()).collect(Collectors.toList());
+        return chatRooms.stream()
+                .map(c -> ChatRoomDto.builder().roomId(c.getRoomId()).roomName(c.getRoomName()).type(c.getType())
+                        .typeId(c.getTypeId()).userCount(c.getUserCount()).build()).collect(Collectors.toList());
     }
 
     // 사용자의 모든 채팅방 목록 불러오기
@@ -61,12 +61,9 @@ public class ChatService {
 
         List<ChatRoom> rooms = chatRoomUserRepository.findChatRoomsByUserId(userId);
 
-        return rooms.stream().map(c -> ChatRoomDto.builder().
-                roomId(c.getRoomId())
-                .roomName(c.getRoomName())
-                .type(c.getType())
-                .typeId(c.getTypeId())
-                .userCount(c.getUserCount()).build()).collect(Collectors.toList());
+        return rooms.stream()
+                .map(c -> ChatRoomDto.builder().roomId(c.getRoomId()).roomName(c.getRoomName()).type(c.getType())
+                        .typeId(c.getTypeId()).userCount(c.getUserCount()).build()).collect(Collectors.toList());
     }
 
     // 채팅방 이름으로 채팅방 생성
@@ -75,47 +72,27 @@ public class ChatService {
     @Transactional
     public ChatRoomDto createCommunityRoom(Long communityId, String roomName, Long userId) {
         // 로그인한 사용자 존재 확인
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+        userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
-        ChatRoom chatRoom = ChatRoom.builder()
-                .roomName(roomName)
-                .type(RoomType.C)
-                .typeId(communityId)
-                .build();
+        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.C).typeId(communityId).build();
 
         chatRoomRepository.save(chatRoom);
 
-        return ChatRoomDto.builder()
-                .roomId(chatRoom.getRoomId())
-                .roomName(chatRoom.getRoomName())
-                .userCount(chatRoom.getUserCount())
-                .type(chatRoom.getType())
-                .typeId(chatRoom.getTypeId())
-                .build();
+        return ChatRoomDto.builder().roomId(chatRoom.getRoomId()).roomName(chatRoom.getRoomName())
+                .userCount(chatRoom.getUserCount()).type(chatRoom.getType()).typeId(chatRoom.getTypeId()).build();
     }
 
     // 티켓 채팅방
     @Transactional
     public ChatRoomDto createTicketRoom(Long tsId, String roomName, Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+        userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
-        ChatRoom chatRoom = ChatRoom.builder()
-                .roomName(roomName)
-                .type(RoomType.T)
-                .typeId(tsId)
-                .build();
+        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.T).typeId(tsId).build();
 
         chatRoomRepository.save(chatRoom);
 
-        return ChatRoomDto.builder()
-                .roomId(chatRoom.getRoomId())
-                .roomName(chatRoom.getRoomName())
-                .userCount(chatRoom.getUserCount())
-                .type(chatRoom.getType())
-                .typeId(chatRoom.getTypeId())
-                .build();
+        return ChatRoomDto.builder().roomId(chatRoom.getRoomId()).roomName(chatRoom.getRoomName())
+                .userCount(chatRoom.getUserCount()).type(chatRoom.getType()).typeId(chatRoom.getTypeId()).build();
     }
 
     // 채팅방에 참여한 user 조회
@@ -123,15 +100,9 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
-        List<User> chatUsers = chatRoom.getChatRoomUsers().stream()
-                .map(ChatRoomUser::getUser)
-                .toList();
+        List<User> chatUsers = chatRoom.getChatRoomUsers().stream().map(ChatRoomUser::getUser).toList();
 
-        return chatUsers.stream()
-                .map(c -> UserInfoDto.builder()
-                        .email(c.getEmail())
-                        .nickname(c.getNickname())
-                        .build())
+        return chatUsers.stream().map(c -> UserInfoDto.builder().email(c.getEmail()).nickname(c.getNickname()).build())
                 .toList();
     }
 
@@ -139,53 +110,35 @@ public class ChatService {
     // 처음 채팅방에 들어갈때만 사용하기 때문에 이후 채팅방 들어가면 호출하면 안 됨
     @Transactional
     public ChatUserDto enterRoom(Long roomId, String nickname) {
-
-        // TODO 임시로 만듦 추후 밑에 주석 처리된 코드 사용, userId로 nickname 찾아서 넣어주면 됨
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
-        // 이미 user가 들어간 경우 join 호출
+        // 이미 참여 중인 경우 재입장 처리
         if (chatRoomUserRepository.existsByChatRoomAndUser(chatRoom, user)) {
-
             return joinRoom(roomId, user.getUserId());
         }
 
-        // 인원수 증가
-        chatRoom.upUserCount();
-        chatRoomRepository.save(chatRoom);
+        // 채팅방 유형별 입장 처리
+        if (chatRoom.getType() == RoomType.C) {
+            handleCommunityRoomEnter(chatRoom, user);
+        } else {
+            handleTicketRoomEnter(chatRoom, user);
+        }
 
-        // 연관관계 엔티티 생성
-        ChatRoomUser chatRoomUser = ChatRoomUser.builder()
-                .build();
+        // ChatRoomUser 생성 및 관계 설정
+        ChatRoomUser chatRoomUser = createChatRoomUser(chatRoom, user);
 
-        // 양방향 관계 세팅
-        user.addChatRoomUser(chatRoomUser);
-        chatRoom.addChatRoomUser(chatRoomUser);
-
-        // 현재 방 업데이트
-        user.updateCurrentRoomId(chatRoom.getRoomId());
-        userRepository.save(user);
-
-        log.info("현재 userCount = {}", chatRoom.getUserCount());
-
-        ChatRoomUser savedChatUser = chatRoomUserRepository.save(chatRoomUser);
-
-        return ChatUserDto.builder()
-                .roomId(savedChatUser.getChatRoom().getRoomId())
-                .userId(savedChatUser.getUser().getUserId())
-                .build();
+        return ChatUserDto.builder().roomId(chatRoomUser.getChatRoom().getRoomId())
+                .userId(chatRoomUser.getUser().getUserId()).build();
     }
 
     // 채팅방 떠나기 (아예 나감)
     @Transactional
     public String leaveRoom(Long roomId, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
@@ -213,8 +166,7 @@ public class ChatService {
     // 채팅방 들어올때마다 호출
     @Transactional
     public ChatUserDto joinRoom(Long roomId, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
@@ -224,17 +176,13 @@ public class ChatService {
 
         userRepository.save(user);
 
-        return ChatUserDto.builder()
-                .roomId(chatRoom.getRoomId())
-                .userId(user.getUserId())
-                .build();
+        return ChatUserDto.builder().roomId(chatRoom.getRoomId()).userId(user.getUserId()).build();
     }
 
     // 채팅방 나가기, 채팅방 나올때마다 호출 -> 화면에서 나가는 경우에도 호출
     @Transactional
     public String exitRoom(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
 
         // 채팅방 입장하지 않은 상태로 변경
         user.updateCurrentRoomId(null);
@@ -260,27 +208,19 @@ public class ChatService {
 
         ChatRoomUser chatRoomUser = chatRoomUserOpt.get();
 
-        List<Chat> chats = chatRepository.findAllByRoomIdAndSentAtAfter(
-                String.valueOf(roomId),
-                chatRoomUser.getJoinedAt()
-        );
+        List<Chat> chats = chatRepository.findAllByRoomIdAndSentAtAfter(String.valueOf(roomId),
+                chatRoomUser.getJoinedAt());
 
-        return chats.stream().map(c -> ChatDto.builder()
-                .nickname(c.getSender())
-                .message(c.getMessage())
-                .sentAt(c.getSentAt())
-                .build()).collect(Collectors.toList());
+        return chats.stream()
+                .map(c -> ChatDto.builder().nickname(c.getSender()).message(c.getMessage()).sentAt(c.getSentAt())
+                        .build()).collect(Collectors.toList());
     }
 
     // 채팅 내용 저장
     @Transactional
     public void saveChat(ChatDto chatDto, Long roomId) {
-        Chat chat = Chat.builder()
-                .roomId(String.valueOf(roomId))
-                .sender(chatDto.getNickname())
-                .message(chatDto.getMessage())
-                .sentAt(chatDto.getSentAt())
-                .build();
+        Chat chat = Chat.builder().roomId(String.valueOf(roomId)).sender(chatDto.getNickname())
+                .message(chatDto.getMessage()).sentAt(chatDto.getSentAt()).build();
 
         Chat savedChat = chatRepository.save(chat);
 
@@ -312,13 +252,8 @@ public class ChatService {
             // 나머지 사용자에게만 알림 전송
             log.info("{}에게 알림 전송 (현재방={}, 유저방={})", receiver.getNickname(), thisRoomId, currentRoomId);
             sseService.broadcast(receiver.getUserId(),
-                    EventPayload.builder()
-                            .roomId(roomId)
-                            .message(chatDto.getMessage())
-                            .nickname(chatDto.getNickname())
-                            .sentAt(chatDto.getSentAt())
-                            .build()
-            );
+                    EventPayload.builder().roomId(roomId).message(chatDto.getMessage()).nickname(chatDto.getNickname())
+                            .sentAt(chatDto.getSentAt()).build());
         }
 
     }
@@ -329,39 +264,73 @@ public class ChatService {
         // 10개 제한
         PageRequest limit = PageRequest.of(0, 10);
 
-        List<TicketRoomCount> ticketRoomCounts =
-                chatRoomRepository.findTicketSalesByChatRoomCount(RoomType.T, limit);
+        List<TicketRoomCount> ticketRoomCounts = chatRoomRepository.findTicketSalesByChatRoomCount(RoomType.T, limit);
 
-        List<Long> tsIds = ticketRoomCounts.stream()
-                .map(TicketRoomCount::getTsId)
-                .toList();
+        List<Long> tsIds = ticketRoomCounts.stream().map(TicketRoomCount::getTsId).toList();
 
         List<TicketSale> ticketSales = ticketSaleRepository.findByTsIdIn(tsIds);
 
         // Map으로 최적화 (tsId를 key로)
-        Map<Long, TicketSale> saleMap = ticketSales.stream()
-                .collect(Collectors.toMap(TicketSale::getTsId, ts -> ts));
+        Map<Long, TicketSale> saleMap = ticketSales.stream().collect(Collectors.toMap(TicketSale::getTsId, ts -> ts));
 
-        return ticketRoomCounts.stream()
-                .map(c -> {
-                    TicketSale s = saleMap.get(c.getTsId());
-                    return TicketInfoDto.builder()
-                            .tsId(s.getTsId())
-                            .title(s.getTitle())
-                            .description(s.getDescription())
-                            .price(s.getPrice())
-                            .gameDay(s.getGameDay())
-                            .ticketCount(s.getTicketCount())
-                            .home(s.getHome())
-                            .away(s.getAway())
-                            .stadium(s.getStadium())
-                            .adjacentSeat(s.getAdjacentSeat())
-                            .state(s.getState())
-                            .saveState(s.getSaveState())
-                            .chatRoomCount(c.getChatRoomCount())
-                            .build();
-                })
-                .toList();
+        return ticketRoomCounts.stream().map(c -> {
+            TicketSale s = saleMap.get(c.getTsId());
+            return TicketInfoDto.builder().tsId(s.getTsId()).title(s.getTitle()).description(s.getDescription())
+                    .price(s.getPrice()).gameDay(s.getGameDay()).ticketCount(s.getTicketCount()).home(s.getHome())
+                    .away(s.getAway()).stadium(s.getStadium()).adjacentSeat(s.getAdjacentSeat()).state(s.getState())
+                    .saveState(s.getSaveState()).chatRoomCount(c.getChatRoomCount()).build();
+        }).toList();
+    }
+
+    // 모임 채팅방 입장 처리
+    private void handleCommunityRoomEnter(ChatRoom chatRoom, User user) {
+        Community community = communityRepository.findById(chatRoom.getTypeId())
+                .orElseThrow(() -> new NoSuchElementException("모임이 존재하지 않습니다."));
+
+        // 입장 제한
+        if (community.getIsFull()) {
+            throw new IllegalArgumentException("채팅방 인원이 다 찼습니다.");
+        }
+
+        // 인원 증가
+        chatRoom.upUserCount();
+
+        // 인원 꽉 찼는지 확인 후 상태 업데이트
+        if (chatRoom.getUserCount() >= community.getMemberCount()) {
+            community.updateIsFull(true);
+            communityRepository.save(community);
+        }
+
+        chatRoomRepository.save(chatRoom);
+        user.updateCurrentRoomId(chatRoom.getRoomId());
+        userRepository.save(user);
+
+        log.info("[모임 채팅방] {} 입장 완료. 현재 인원: {}", user.getNickname(), chatRoom.getUserCount());
+    }
+
+    // 티켓 거래 채팅방 입장 처리
+    private void handleTicketRoomEnter(ChatRoom chatRoom, User user) {
+        chatRoom.upUserCount();
+        chatRoomRepository.save(chatRoom);
+
+        user.updateCurrentRoomId(chatRoom.getRoomId());
+        userRepository.save(user);
+
+        log.info("[티켓 거래 채팅방] {} 입장 완료. 현재 인원: {}", user.getNickname(), chatRoom.getUserCount());
+    }
+
+    // ChatRoomUser 엔티티 생성 및 양방향 관계 설정
+    private ChatRoomUser createChatRoomUser(ChatRoom chatRoom, User user) {
+        ChatRoomUser chatRoomUser = ChatRoomUser.builder().build();
+
+        // 양방향 관계 설정
+        user.addChatRoomUser(chatRoomUser);
+        chatRoom.addChatRoomUser(chatRoomUser);
+
+        ChatRoomUser savedChatRoomUser = chatRoomUserRepository.save(chatRoomUser);
+        log.info("[ChatRoomUser] user={}, roomId={} 연결 완료", user.getNickname(), chatRoom.getRoomId());
+
+        return savedChatRoomUser;
     }
 
 }
