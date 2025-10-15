@@ -28,13 +28,7 @@ public class CommunityResponse {
     private SaveState saveState;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    //imageUrl 있는 경우
     private String imageUrl;
-
-    public static CommunityResponse from(Community community) {
-        return from(community, null); // 기본적으로 imageUrl 없음
-    }
 
 
     public static CommunityResponse from(Community community, String imageUrl) {
