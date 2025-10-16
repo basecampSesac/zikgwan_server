@@ -60,7 +60,7 @@ public class CommunityService {
         String imageUrl = null;
         if (imageFile != null && !imageFile.isEmpty()) {
             imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
-            imageUrl = imageService.getImage(ImageType.C,  savedCommunity.getCommunityId());
+            imageUrl = imageService.getImage(ImageType.C, savedCommunity.getCommunityId());
             System.out.println("imageUrl : " + imageUrl);
         }
 
@@ -90,11 +90,11 @@ public class CommunityService {
         String imageUrl = null;
         if (imageFile != null) {
             imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
-            imageUrl = imageService.getImage(ImageType.C,  savedCommunity.getCommunityId());
+            imageUrl = imageService.getImage(ImageType.C, savedCommunity.getCommunityId());
             System.out.println("imageUrl : " + imageUrl);
         }
 
-        return CommunityResponse.from(savedCommunity,imageUrl);
+        return CommunityResponse.from(savedCommunity, imageUrl);
     }
 
     //Soft Delete (saveState = N)
@@ -162,10 +162,10 @@ public class CommunityService {
                 .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다. ID: " + communityId));
 
         String imageUrl = null;
-        imageUrl = imageService.getImage(ImageType.C,  communityId);
+        imageUrl = imageService.getImage(ImageType.C, communityId);
         System.out.println("모임상세조회 imageUrl : " + imageUrl);
 
-        return CommunityResponse.from(community,imageUrl);
+        return CommunityResponse.from(community, imageUrl);
     }
     // 제목, 모임 구단, 구장, 경기 날짜를 선택 입력으로 필터링하여 조회
 
@@ -181,11 +181,11 @@ public class CommunityService {
 
             communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
                     team,
-                    stadium, datetime, datetime.plusDays(1));
+                    stadium, datetime, datetime.plusDays(1), SaveState.Y);
         } else {
             communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
                     team,
-                    stadium, null, null);
+                    stadium, null, null, SaveState.Y);
         }
 
         return communities.stream()
