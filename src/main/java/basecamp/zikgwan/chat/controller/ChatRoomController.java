@@ -57,6 +57,19 @@ public class ChatRoomController {
     }
 
     /**
+     * 모임 채팅방 상세 조회
+     */
+    @GetMapping("/community/{communityId}")
+    public ResponseEntity<ApiResponse<ChatRoomDto>> getCommunityChatRoom(@PathVariable Long communityId,
+                                                                         @AuthenticationPrincipal CustomUserPrincipal principal) {
+        ChatRoomDto chatRoomDto = chatService.getCommunityChatRoom(communityId, principal.getUserId());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(chatRoomDto));
+    }
+
+    /**
      * 채팅에 참여한 모든 유저 조회
      */
     @GetMapping("/user/{roomId}")

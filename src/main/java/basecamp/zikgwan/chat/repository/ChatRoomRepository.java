@@ -4,6 +4,7 @@ import basecamp.zikgwan.chat.domain.ChatRoom;
 import basecamp.zikgwan.chat.dto.TicketRoomCount;
 import basecamp.zikgwan.chat.enums.RoomType;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +22,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "ORDER BY COUNT(c) DESC")
     List<TicketRoomCount> findTicketSalesByChatRoomCount(@Param("type") RoomType type, Pageable pageable);
 
+    Optional<ChatRoom> findByUniqueKey(String uniqueKey);
+
+    Optional<ChatRoom> findFirstByTypeIdAndType(Long typeId, RoomType roomType);
 }
