@@ -58,7 +58,6 @@ public class TicketSaleService {
                 .adjacentSeat(ticketSaleRequest.getAdjacentSeat())
                 .sellerId(user)
                 .state(TicketState.ING)
-                //이미지 경로
                 .build();
 
         TicketSale savedticketSale = ticketSaleRepository.save(ticketSale);
@@ -76,13 +75,18 @@ public class TicketSaleService {
 
     // 티켓 판매글 수정
     @Transactional
-    public TicketSaleResponse updateTicketSale(Long tsId, TicketSaleRequest ticketSaleRequest, MultipartFile imageFile)
+    public TicketSaleResponse updateTicketSale(Long userId, Long tsId, TicketSaleRequest ticketSaleRequest,
+                                               MultipartFile imageFile)
             throws Exception {
 
         // 판매글 작성자만 글 수정 가능
         // TODO 차후 security 설정하면 수정예정
         TicketSale ticketSale = ticketSaleRepository.findById(tsId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다. id=" + tsId));
+
+        if (!ticketSale.getSellerId().getUserId().equals(userId)) {
+            throw new IllegalAccessException("게시글은 본인만 수정할 수 있습니다.");
+        }
 
         ticketSale.updateTicketSale(ticketSaleRequest);
 
@@ -101,9 +105,14 @@ public class TicketSaleService {
 
     // 티켓 판매글 삭제 - (soft delete)
     @Transactional
-    public void deleteTicketSale(Long tsId) {
+    public void deleteTicketSale(Long tsId, Long userId) throws IllegalAccessException {
         TicketSale ticketSale = ticketSaleRepository.findById(tsId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다. id=" + tsId));
+
+        if (!ticketSale.getSellerId().getUserId().equals(userId)) {
+            throw new IllegalAccessException("게시글은 본인만 삭제할 수 있습니다.");
+        }
+
         ticketSale.updateSaveState(SaveState.N);
     }
 
@@ -162,21 +171,21 @@ public class TicketSaleService {
     }
 
     // 제목, 모임 구단, 구장, 경기 날짜를 선택 입력으로 필터링하여 조회
-    public List<TicketSaleResponse> searchCommunitiesByTitleAndTeamAndStadiumAndDate(String title, String team,
-                                                                                     String stadium,
-                                                                                     LocalDate date) {
+    public List<TicketSaleResponse> searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(String title, String team,
+                                                                                        String stadium,
+                                                                                        LocalDate gameDay) {
 
         List<TicketSale> ticketSales;
 
         // date null 체크
-        if (date != null) {
-            LocalDateTime datetime = date.atStartOfDay();
+        if (gameDay != null) {
+            LocalDateTime datetime = gameDay.atStartOfDay();
 
-            ticketSales = ticketSaleRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+            ticketSales = ticketSaleRepository.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(title,
                     team,
                     stadium, datetime, datetime.plusDays(1));
         } else {
-            ticketSales = ticketSaleRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+            ticketSales = ticketSaleRepository.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(title,
                     team,
                     stadium, null, null);
         }
