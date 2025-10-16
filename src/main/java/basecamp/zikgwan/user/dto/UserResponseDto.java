@@ -17,5 +17,7 @@ public class UserResponseDto {
     private String refreshToken;
     private String provider;
 
+    private String imageUrl; //프로필 이미지 URL
+
 
 }
