@@ -5,6 +5,8 @@ import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.config.security.CustomUserPrincipal;
 import basecamp.zikgwan.config.security.TokenProvider;
+import basecamp.zikgwan.image.enums.ImageType;
+import basecamp.zikgwan.image.service.ImageService;
 import basecamp.zikgwan.user.domain.Token;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.dto.UserRequestDto;
@@ -41,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final ImageService imageService;
 
     //jwt 적용
     @Autowired
@@ -249,8 +252,12 @@ public class UserController {
 
         User user = userService.getUserInfo(id);
 
+        String imageUrl = null;
+        imageUrl = imageService.getImage(ImageType.U, user.getUserId());
+        //System.out.println("사용자 정보 imageUrl : " + imageUrl);
+
         UserResponseDto rsUserDTO = UserResponseDto.builder().email(user.getEmail()).nickname(user.getNickname())
-                .userId(user.getUserId()).club(user.getClub()).build();
+                .userId(user.getUserId()).club(user.getClub()).imageUrl(imageUrl).build();
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(rsUserDTO));
     }
