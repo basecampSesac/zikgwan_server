@@ -132,6 +132,7 @@ public class ChatService {
                 .map(u -> UserInfoDto.builder()
                         .email(u.getEmail())
                         .nickname(u.getNickname())
+                        .club(u.getClub())
                         .build())
                 .toList();
     }
