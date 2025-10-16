@@ -1,6 +1,7 @@
 package basecamp.zikgwan.community.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,7 @@ public class CommunityRequest {
 
     //@NotNull(message = "모임 인원을 입력해주세요.")
     @Positive(message = "모임 인원은 1명 이상이어야 합니다.")
+    @Max(10)
     private Integer memberCount;
 
 }
