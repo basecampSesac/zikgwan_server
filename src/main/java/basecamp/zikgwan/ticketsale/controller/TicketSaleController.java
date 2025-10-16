@@ -44,8 +44,6 @@ public class TicketSaleController {
             @RequestPart("ticketSaleRequest") TicketSaleRequest ticketSaleRequest)
             throws Exception {
 
-        log.info("로그인 확인 : {}", principal.getUserId());
-
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.fail("로그인이 필요합니다."));
@@ -112,7 +110,7 @@ public class TicketSaleController {
     }
 
     // 티켓 판매글 전체 조회
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<ApiResponse<TicketSalePageResponse>> getAllTicketSales(
             @RequestParam(required = false, defaultValue = "RECENT") SortType sortType,
             Pageable pageable

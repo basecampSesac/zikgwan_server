@@ -1,5 +1,6 @@
 package basecamp.zikgwan.ticketsale.dto;
 
+import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.ticketsale.TicketSale;
 import basecamp.zikgwan.ticketsale.enums.Seat;
 import basecamp.zikgwan.ticketsale.enums.TicketState;
@@ -30,6 +31,7 @@ public class TicketSaleResponse {
     private LocalDateTime createdAt; // 티켓 거래글 작성일자
     private LocalDateTime updatedAt; // 티켓 거래글 수정일자
     private String imageUrl;
+    private SaveState saveState;
 
     public static TicketSaleResponse from(TicketSale ticketSale, String imageUrl) {
         return TicketSaleResponse.builder()
@@ -47,7 +49,7 @@ public class TicketSaleResponse {
                 .state(ticketSale.getState())
                 .imageUrl(imageUrl)
                 .createdAt(ticketSale.getCreatedAt())
-                .updatedAt(ticketSale.getUpdatedAt())
+                .saveState(ticketSale.getSaveState())
                 .build();
     }
 }
