@@ -40,7 +40,7 @@ public class TicketSaleController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<TicketSaleResponse>> createTicketSale(
             @AuthenticationPrincipal CustomUserPrincipal principal,
-            @RequestPart("image") MultipartFile imageFile,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
             @RequestPart("ticketSaleRequest") TicketSaleRequest ticketSaleRequest)
             throws Exception {
 
