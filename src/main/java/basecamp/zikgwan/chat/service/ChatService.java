@@ -66,6 +66,24 @@ public class ChatService {
                         .typeId(c.getTypeId()).userCount(c.getUserCount()).build()).collect(Collectors.toList());
     }
 
+    // 모임의 해당 채팅방 불러오기
+    public ChatRoomDto getCommunityChatRoom(Long typeId, Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+
+        ChatRoom chatRoom = chatRoomRepository.findFirstByTypeIdAndType(typeId, RoomType.C)
+                .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
+
+        return ChatRoomDto.builder()
+                .roomId(chatRoom.getRoomId())
+                .roomName(chatRoom.getRoomName())
+                .typeId(typeId)
+                .type(chatRoom.getType())
+                .userCount(chatRoom.getUserCount())
+                .build();
+
+    }
+
     // 채팅방 이름으로 채팅방 생성
 
     // 그룹
@@ -87,7 +105,13 @@ public class ChatService {
     public ChatRoomDto createTicketRoom(Long tsId, String roomName, Long userId) {
         userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
-        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.T).typeId(tsId).build();
+        // 구매자와 uniqueKey 없음
+        ChatRoom chatRoom = ChatRoom.builder()
+                .roomName(roomName)
+                .type(RoomType.T)
+                .typeId(tsId)
+                .sellerId(userId)
+                .build();
 
         chatRoomRepository.save(chatRoom);
 
@@ -100,9 +124,15 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
-        List<User> chatUsers = chatRoom.getChatRoomUsers().stream().map(ChatRoomUser::getUser).toList();
+        // User를 미리 fetch join으로 가져오기
+        List<ChatRoomUser> chatRoomUsers = chatRoomUserRepository.findAllWithUserByChatRoom(chatRoom);
 
-        return chatUsers.stream().map(c -> UserInfoDto.builder().email(c.getEmail()).nickname(c.getNickname()).build())
+        return chatRoomUsers.stream()
+                .map(cru -> cru.getUser())
+                .map(u -> UserInfoDto.builder()
+                        .email(u.getEmail())
+                        .nickname(u.getNickname())
+                        .build())
                 .toList();
     }
 
@@ -121,11 +151,33 @@ public class ChatService {
             return joinRoom(roomId, user.getUserId());
         }
 
-        // 채팅방 유형별 입장 처리
-        if (chatRoom.getType() == RoomType.C) {
-            handleCommunityRoomEnter(chatRoom, user);
-        } else {
+        // 티켓 거래방이라면 buyerId 및 uniqueKey 생성
+        if (chatRoom.getType() == RoomType.T) {
+            // 판매자의 id가 아니면 구매자의 id
+            if (!Objects.equals(chatRoom.getSellerId(), user.getUserId())) {
+                // 구매자 입장
+                Long buyerId = user.getUserId();
+
+                // 이미 동일 거래에 대해 생성된 방이 있는지 확인
+                String candidateKey = chatRoom.generateTicketUniqueKey(
+                        chatRoom.getTypeId(), chatRoom.getSellerId(), buyerId);
+
+                Optional<ChatRoom> existedRoom = chatRoomRepository.findByUniqueKey(candidateKey);
+                if (existedRoom.isPresent()) {
+                    log.info("[재사용] 기존 티켓 거래방 존재: {}", candidateKey);
+                    return joinRoom(existedRoom.get().getRoomId(), user.getUserId());
+                }
+
+                // 기존 방이 없으면 현재 방에 buyerId와 uniqueKey 등록
+                chatRoom.updateBuyerId(buyerId);
+                chatRoom.updateUniqueKey(candidateKey);
+                chatRoomRepository.save(chatRoom);
+                log.info("[신규 등록] 티켓 거래 uniqueKey 생성: {}", candidateKey);
+            }
+
             handleTicketRoomEnter(chatRoom, user);
+        } else {
+            handleCommunityRoomEnter(chatRoom, user);
         }
 
         // ChatRoomUser 생성 및 관계 설정
@@ -153,6 +205,17 @@ public class ChatService {
         // 채팅방 입장하지 않은 상태로 변경
         user.updateCurrentRoomId(null);
         userRepository.save(user);
+
+        if (chatRoom.getType() == RoomType.C) {
+            Community community = communityRepository.findById(chatRoom.getTypeId())
+                    .orElseThrow(() -> new NoSuchElementException("모임이 존재하지 않습니다."));
+
+            // 인원 꽉 찼는지 확인 후 상태 업데이트
+            if (chatRoom.getUserCount() < community.getMemberCount()) {
+                community.updateIsFull(false);
+                communityRepository.save(community);
+            }
+        }
 
         // 방 참여 인원이 0명이면 채팅방도 삭제
         if (chatRoom.getUserCount() <= 0) {
