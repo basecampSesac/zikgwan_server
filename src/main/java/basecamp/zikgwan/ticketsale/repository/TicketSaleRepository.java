@@ -31,7 +31,7 @@ public interface TicketSaleRepository extends JpaRepository<TicketSale, Long> {
             "OR LOWER(t.away) LIKE LOWER(CONCAT('%', :team, '%'))) " +
             "AND (:stadium IS NULL OR t.stadium = :stadium) " +
             "AND (:gameDay IS NULL OR (t.gameDay >= :gameDay AND t.gameDay < :datePlusOne))")
-    List<TicketSale> searchCommunitiesByTitleAndTeamAndStadiumAndDate(
+    List<TicketSale> searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(
             @Param("title") String title,
             @Param("team") String team,
             @Param("stadium") String stadium,
