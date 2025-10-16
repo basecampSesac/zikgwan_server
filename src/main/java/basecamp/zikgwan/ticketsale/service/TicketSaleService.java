@@ -42,7 +42,6 @@ public class TicketSaleService {
             throws IOException {
 
         // 회원만 글 작성 가능
-        // TODO 차후 security 설정하면 수정예정
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 작성 권한이 없습니다."));
 
@@ -80,7 +79,6 @@ public class TicketSaleService {
             throws Exception {
 
         // 판매글 작성자만 글 수정 가능
-        // TODO 차후 security 설정하면 수정예정
         TicketSale ticketSale = ticketSaleRepository.findById(tsId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다. id=" + tsId));
 
@@ -114,6 +112,9 @@ public class TicketSaleService {
         }
 
         ticketSale.updateSaveState(SaveState.N);
+
+        ticketSaleRepository.save(ticketSale);
+
     }
 
     // 티켓 판매글 상세 조회
