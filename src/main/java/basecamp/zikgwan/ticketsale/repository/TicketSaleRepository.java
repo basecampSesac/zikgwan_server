@@ -25,17 +25,17 @@ public interface TicketSaleRepository extends JpaRepository<TicketSale, Long> {
     Page<TicketSale> findAllBySaveStateOrderByPriceAsc(SaveState saveState, Pageable pageable);
 
     // 경기 제목, 모임 구단, 구장, 경기 날짜 선택 조회
-    @Query("SELECT t FROM Ticket_Sales t " +
+    @Query("SELECT t FROM TicketSale t " +
             "WHERE (:title IS NULL OR t.title LIKE %:title%) " +
             "AND (:team IS NULL OR LOWER(t.home) LIKE LOWER(CONCAT('%', :team, '%'))\n " +
             "OR LOWER(t.away) LIKE LOWER(CONCAT('%', :team, '%'))) " +
-            "AND (:stadium IS NULL OR c.stadium = :stadium) " +
-            "AND (:date IS NULL OR (t.date >= :date AND t.date < :datePlusOne))")
+            "AND (:stadium IS NULL OR t.stadium = :stadium) " +
+            "AND (:gameDay IS NULL OR (t.gameDay >= :gameDay AND t.gameDay < :datePlusOne))")
     List<TicketSale> searchCommunitiesByTitleAndTeamAndStadiumAndDate(
             @Param("title") String title,
             @Param("team") String team,
             @Param("stadium") String stadium,
-            @Param("date") LocalDateTime date,
+            @Param("gameDay") LocalDateTime gameDay,
             @Param("datePlusOne") LocalDateTime datePlusOne);
 
 }

@@ -59,7 +59,7 @@ public class TicketSale extends BaseEntity {
     @Column(name = "away", length = 50, nullable = false)
     private String away;
 
-    @Column(name = "stadium", length = 2, nullable = false)
+    @Column(name = "stadium", length = 100, nullable = false)
     private String stadium;
 
     @Enumerated(EnumType.STRING)

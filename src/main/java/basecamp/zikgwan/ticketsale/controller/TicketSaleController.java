@@ -1,5 +1,7 @@
 package basecamp.zikgwan.ticketsale.controller;
 
+import basecamp.zikgwan.common.dto.ApiResponse;
+import basecamp.zikgwan.config.security.CustomUserPrincipal;
 import basecamp.zikgwan.ticketsale.dto.TicketSalePageResponse;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleRequest;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleResponse;
@@ -7,8 +9,10 @@ import basecamp.zikgwan.ticketsale.enums.SortType;
 import basecamp.zikgwan.ticketsale.service.TicketSaleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,15 +34,19 @@ public class TicketSaleController {
 
     // 티켓 판매글 등록
     // TODO security 설정 시 userId 삭제
-    @PostMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<TicketSaleResponse> createTicketSale(
-            @PathVariable Long userId,
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<TicketSaleResponse>> createTicketSale(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestPart("image") MultipartFile imageFile,
-            @RequestBody TicketSaleRequest ticketSaleRequest) {
+            @RequestPart("ticketSaleRequest") TicketSaleRequest ticketSaleRequest) throws Exception {
 
-        TicketSaleResponse ticketSaleResponse = ticketSaleService.createTicketSale(userId, ticketSaleRequest,
+        TicketSaleResponse ticketSaleResponse = ticketSaleService.createTicketSale(principal.getUserId(),
+                ticketSaleRequest,
                 imageFile);
-        return ResponseEntity.ok(ticketSaleResponse);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(ticketSaleResponse));
     }
 
     // 티켓 판매글 수정
@@ -46,7 +54,7 @@ public class TicketSaleController {
     public ResponseEntity<TicketSaleResponse> updateTicketSale(
             @PathVariable Long tsId,
             @RequestPart("image") MultipartFile imageFile,
-            @RequestBody TicketSaleRequest ticketSaleRequest) {
+            @RequestBody TicketSaleRequest ticketSaleRequest) throws Exception {
 
         TicketSaleResponse ticketSaleResponse = ticketSaleService.updateTicketSale(tsId, ticketSaleRequest, imageFile);
         return ResponseEntity.ok(ticketSaleResponse);

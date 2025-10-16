@@ -12,17 +12,20 @@ import basecamp.zikgwan.ticketsale.enums.TicketState;
 import basecamp.zikgwan.ticketsale.repository.TicketSaleRepository;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -35,7 +38,8 @@ public class TicketSaleService {
     // 티켓 판매글 등록
     @Transactional
     public TicketSaleResponse createTicketSale(Long userId, TicketSaleRequest ticketSaleRequest,
-                                               MultipartFile imageFile) {
+                                               MultipartFile imageFile)
+            throws IOException {
 
         // 회원만 글 작성 가능
         // TODO 차후 security 설정하면 수정예정
@@ -65,14 +69,15 @@ public class TicketSaleService {
             imageUrl = imageService.getImage(ImageType.T, savedticketSale.getTsId());
             System.out.println("imageUrl : " + imageUrl);
         }
+        log.info("티켓 등록 확인 : {}", savedticketSale.getTitle());
 
         return TicketSaleResponse.from(savedticketSale, imageUrl);
     }
 
     // 티켓 판매글 수정
     @Transactional
-    public TicketSaleResponse updateTicketSale(Long tsId, TicketSaleRequest ticketSaleRequest,
-                                               MultipartFile imageFile) {
+    public TicketSaleResponse updateTicketSale(Long tsId, TicketSaleRequest ticketSaleRequest, MultipartFile imageFile)
+            throws Exception {
 
         // 판매글 작성자만 글 수정 가능
         // TODO 차후 security 설정하면 수정예정
@@ -138,7 +143,7 @@ public class TicketSaleService {
     }
 
     // 정렬 조건 확인 및 정렬
-    private Page<TicketSale> checkSortBy(basecamp.zikgwan.community.enums.SortType sortType, Pageable pageable) {
+    private Page<TicketSale> checkSortBy(SortType sortType, Pageable pageable) {
         Page<TicketSale> ticketSales;
 
         // 게시글 최신 순
