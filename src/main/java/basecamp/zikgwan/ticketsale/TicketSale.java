@@ -142,7 +142,7 @@ public class TicketSale extends BaseEntity {
         this.state = state;
     }
 
-//    public void setBuyer(User user) {
-//        this.buyer_id = user;
-//    }
+    public void setBuyer(User user) {
+        this.buyerId = user.getUserId();
+    }
 }
