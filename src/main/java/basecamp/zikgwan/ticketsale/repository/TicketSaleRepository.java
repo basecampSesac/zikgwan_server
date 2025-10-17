@@ -36,6 +36,7 @@ public interface TicketSaleRepository extends JpaRepository<TicketSale, Long> {
             @Param("team") String team,
             @Param("stadium") String stadium,
             @Param("gameDay") LocalDateTime gameDay,
-            @Param("datePlusOne") LocalDateTime datePlusOne);
+            @Param("datePlusOne") LocalDateTime datePlusOne,
+            @Param("saveState") SaveState saveState);
 
 }

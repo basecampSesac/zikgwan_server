@@ -137,6 +137,11 @@ public class TicketSale extends BaseEntity {
         this.buyerId = buyerId;
     }
 
+    //거래글 상태변경
+    public void setState(TicketState state) {
+        this.state = state;
+    }
+
 //    public void setBuyer(User user) {
 //        this.buyer_id = user;
 //    }
