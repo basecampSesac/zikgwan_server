@@ -117,13 +117,11 @@ public class UserService {
         }
 
         String newEncodedPassword = null;
-        if ("local".equals(chkUser.getProvider())) {
-            if (newPassword != null && !newPassword.isEmpty()) {
-                newEncodedPassword = passwordEncoder.encode(newPassword);
-                //새 비밀번호가 기존 비밀번호와 동일한지 확인
-                if (passwordEncoder.matches(newPassword, chkUser.getPassword())) {
-                    throw new IllegalArgumentException("새 비밀번호는 기존 비밀번호와 달라야 합니다.");
-                }
+        if ("local".equals(chkUser.getProvider()) && newPassword != null && !newPassword.isEmpty() ) {
+            newEncodedPassword = passwordEncoder.encode(newPassword);
+            //새 비밀번호가 기존 비밀번호와 동일한지 확인
+            if (passwordEncoder.matches(newPassword, chkUser.getPassword())) {
+                throw new IllegalArgumentException("새 비밀번호는 기존 비밀번호와 달라야 합니다.");
             }
         }else {
             newEncodedPassword = chkUser.getPassword();
