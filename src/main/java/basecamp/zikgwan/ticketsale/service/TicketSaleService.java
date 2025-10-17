@@ -222,4 +222,19 @@ public class TicketSaleService {
         // 저장된 결과의 state 반환
         return update.getState();
     }
+
+    @Transactional
+    public void selectTicketSaleBuyer(Long tsId, Long userId, Long buyerId)
+            throws IllegalAccessException {
+        TicketSale ticketSale = ticketSaleRepository.findById(tsId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다. id=" + tsId));
+
+        if (!ticketSale.getSellerId().getUserId().equals(userId)) {
+            throw new IllegalAccessException("티켓 구매자 지정은 본인만 가능합니다.");
+        }
+
+        ticketSale.updateBuyerId(buyerId);
+
+        ticketSaleRepository.save(ticketSale);
+    }
 }

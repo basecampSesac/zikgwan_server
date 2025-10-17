@@ -157,4 +157,25 @@ public class TicketSaleController {
                 .body(ApiResponse.success("티켓 판매글 상태가 " + ticketState.getState() + "로 변경되었습니다."));
     }
 
+    // 티켓 구매자 지정
+    @PutMapping("/select/{tsId}")
+    public ResponseEntity<ApiResponse<String>> selectTicketSaleBuyer(
+            @PathVariable Long tsId,
+            @RequestParam("buyerId") Long buyerId,
+            @AuthenticationPrincipal CustomUserPrincipal principal) throws IllegalAccessException {
+
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("로그인이 필요합니다."));
+        }
+
+        ticketSaleService.selectTicketSaleBuyer(tsId, principal.getUserId(), buyerId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("티켓 구매자 지정 성공: buyerId=" + buyerId));
+
+    }
+
+
 }
