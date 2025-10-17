@@ -174,6 +174,7 @@ public class UserController {
                     .email(user.getEmail())
                     .userId(user.getUserId())
                     .nickname(user.getNickname())
+                    .provider(user.getProvider())
                     .token(token) // 토큰
                     .build();
 
@@ -257,7 +258,7 @@ public class UserController {
         //System.out.println("사용자 정보 imageUrl : " + imageUrl);
 
         UserResponseDto rsUserDTO = UserResponseDto.builder().email(user.getEmail()).nickname(user.getNickname())
-                .userId(user.getUserId()).club(user.getClub()).imageUrl(imageUrl).build();
+                .userId(user.getUserId()).club(user.getClub()).imageUrl(imageUrl).provider(user.getProvider()).build();
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(rsUserDTO));
     }
@@ -313,7 +314,7 @@ public class UserController {
 
         UserResponseDto rsUserDTO = UserResponseDto.builder().email(updateUser.getEmail())
                 .nickname(updateUser.getNickname()).userId(updateUser.getUserId())
-                .club(updateUser.getClub()).build();
+                .club(updateUser.getClub()).provider(updateUser.getProvider()).build();
 
         return ResponseEntity.ok(ApiResponse.success(rsUserDTO));
 
