@@ -6,6 +6,7 @@ import basecamp.zikgwan.ticketsale.dto.TicketSalePageResponse;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleRequest;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleResponse;
 import basecamp.zikgwan.ticketsale.enums.SortType;
+import basecamp.zikgwan.ticketsale.enums.TicketState;
 import basecamp.zikgwan.ticketsale.service.TicketSaleService;
 import java.time.LocalDate;
 import java.util.List;
@@ -138,6 +139,22 @@ public class TicketSaleController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(ticketSaleResponse));
 
+    }
+
+    //티켓 판매글 상태 변경
+    @PutMapping("/state/{tsId}")
+    public ResponseEntity<ApiResponse<String>> toggleTicketSaleState(
+            @PathVariable Long tsId,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("로그인이 필요합니다."));
+        }
+
+        TicketState ticketState = ticketSaleService.updateTicketState(tsId, principal.getUserId());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("티켓 판매글 상태가 " + ticketState.getState() + "로 변경되었습니다."));
     }
 
 }

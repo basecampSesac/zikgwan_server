@@ -184,11 +184,11 @@ public class TicketSaleService {
 
             ticketSales = ticketSaleRepository.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(title,
                     team,
-                    stadium, datetime, datetime.plusDays(1));
+                    stadium, datetime, datetime.plusDays(1), SaveState.Y);
         } else {
             ticketSales = ticketSaleRepository.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(title,
                     team,
-                    stadium, null, null);
+                    stadium, null, null, SaveState.Y);
         }
 
         return ticketSales.stream()
@@ -197,5 +197,29 @@ public class TicketSaleService {
                     return TicketSaleResponse.from(t, imageUrl);
                 })
                 .collect(Collectors.toList());
+    }
+
+    // 티켓 판매글 상태 변경 (ING ↔ END)
+    @Transactional
+    public TicketState updateTicketState(Long tsId, Long userId) {
+        TicketSale ticketSale = ticketSaleRepository.findById(tsId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
+
+        if (!ticketSale.getSellerId().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("게시글 상태를 변경할 권한이 없습니다.");
+        }
+
+        // 현재 상태 반전
+        if (ticketSale.getState() == TicketState.ING) {
+            ticketSale.setState(TicketState.END);
+        } else {
+            ticketSale.setState(TicketState.ING);
+        }
+
+        // 변경된 상태 저장
+        TicketSale update = ticketSaleRepository.save(ticketSale);
+
+        // 저장된 결과의 state 반환
+        return update.getState();
     }
 }
