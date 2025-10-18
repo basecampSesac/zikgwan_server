@@ -2,6 +2,7 @@ package basecamp.zikgwan.chat.domain;
 
 import basecamp.zikgwan.chat.enums.RoomType;
 import basecamp.zikgwan.common.domain.CreatedEntity;
+import basecamp.zikgwan.common.enums.SaveState;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -57,6 +58,11 @@ public class ChatRoom extends CreatedEntity {
     @ColumnDefault("'0'")
     @Column(name = "user_count", nullable = false)
     private Integer userCount = 0;
+
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("'Y'")
+    @Column(name = "save_state", nullable = false)
+    private SaveState saveState;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ChatRoomUser> chatRoomUsers = new ArrayList<>();

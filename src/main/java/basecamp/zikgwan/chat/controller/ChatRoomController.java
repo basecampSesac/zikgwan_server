@@ -161,7 +161,7 @@ public class ChatRoomController {
     }
 
     /**
-     * 채팅 수 내림차순으로 티켓 10개 조회
+     * 채팅 수 내림차순으로 티켓 4개 조회
      */
     @GetMapping("/chat/ticket/desc")
     public ResponseEntity<ApiResponse<List<TicketInfoDto>>> getTicketsOrderByChatDesc() {
