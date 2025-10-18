@@ -4,6 +4,7 @@ import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.image.enums.ImageType;
 import basecamp.zikgwan.image.service.ImageService;
 import basecamp.zikgwan.ticketsale.TicketSale;
+import basecamp.zikgwan.ticketsale.dto.TicketSaleCompleted;
 import basecamp.zikgwan.ticketsale.dto.TicketSalePageResponse;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleRequest;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleResponse;
@@ -236,5 +237,14 @@ public class TicketSaleService {
         ticketSale.updateBuyerId(buyerId);
 
         ticketSaleRepository.save(ticketSale);
+    }
+
+    // 거래완료된 사용자의 거래 조회
+    public List<TicketSaleCompleted> getCompletedSales(Long userId) {
+        List<TicketSale> completedSales = ticketSaleRepository.findCompletedSalesByUser(userId);
+
+        return completedSales.stream()
+                .map(TicketSaleCompleted::from)
+                .collect(Collectors.toList());
     }
 }
