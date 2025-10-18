@@ -62,7 +62,7 @@ class ReviewServiceTest {
 
         given(userRepository.findById(reviewer.getUserId())).willReturn(Optional.of(reviewer));
         given(ticketSaleRepository.findById(ticket.getTsId())).willReturn(Optional.of(ticket));
-        given(reviewRepository.findAllByRefIdAndSaveState(ticket.getTsId(), SaveState.Y)).willReturn(List.of());
+        given(reviewRepository.findAllByTicketSaleAndSaveState(ticket, SaveState.Y)).willReturn(List.of());
 
         // when
         String result = reviewService.createReview(reviewer.getUserId(), ticket.getTsId(), requestDto);
@@ -87,7 +87,7 @@ class ReviewServiceTest {
 
         given(userRepository.findById(anyLong())).willReturn(Optional.of(reviewer));
         given(ticketSaleRepository.findById(anyLong())).willReturn(Optional.of(ticket));
-        given(reviewRepository.findAllByRefIdAndSaveState(anyLong(), any(SaveState.class)))
+        given(reviewRepository.findAllByTicketSaleAndSaveState(any(), any(SaveState.class)))
                 .willReturn(List.of());
 
         // when // then
@@ -112,7 +112,7 @@ class ReviewServiceTest {
 
         given(userRepository.findById(anyLong())).willReturn(Optional.of(reviewer));
         given(ticketSaleRepository.findById(anyLong())).willReturn(Optional.of(ticket));
-        given(reviewRepository.findAllByRefIdAndSaveState(anyLong(), any())).willReturn(List.of());
+        given(reviewRepository.findAllByTicketSaleAndSaveState(any(), any())).willReturn(List.of());
 
         // when // then
         assertThatThrownBy(() -> reviewService.createReview(reviewer.getUserId(), ticket.getTsId(), requestDto))
@@ -132,12 +132,12 @@ class ReviewServiceTest {
                 Seat.Y, TicketState.END, reviewee);
         ticket.updateBuyerId(reviewer.getUserId());
 
-        Review existingReview = createReview(1L, ticket.getTsId(), 4.0, reviewer, reviewee);
+        Review existingReview = createReview(1L, ticket, 4.0, reviewer, reviewee);
         ReviewRequestDto requestDto = new ReviewRequestDto(4.5);
 
         given(userRepository.findById(anyLong())).willReturn(Optional.of(reviewer));
         given(ticketSaleRepository.findById(anyLong())).willReturn(Optional.of(ticket));
-        given(reviewRepository.findAllByRefIdAndSaveState(anyLong(), any())).willReturn(List.of(existingReview));
+        given(reviewRepository.findAllByTicketSaleAndSaveState(any(), any())).willReturn(List.of(existingReview));
 
         // when // then
         assertThatThrownBy(() -> reviewService.createReview(reviewer.getUserId(), ticket.getTsId(), requestDto))
@@ -145,14 +145,13 @@ class ReviewServiceTest {
                 .hasMessage("이미 평가한 거래입니다.");
     }
 
-    private Review createReview(Long reviewId, Long tsId, Double rating, User user1, User user2) {
+    private Review createReview(Long reviewId, TicketSale ticketSale, Double rating, User user1, User user2) {
         return Review.builder()
                 .reviewId(reviewId)
-                .refId(tsId)
+                .ticketSale(ticketSale)
                 .rating(rating)
                 .reviewer(user1)
                 .reviewee(user2)
-                .saveState(SaveState.Y)
                 .build();
     }
 
