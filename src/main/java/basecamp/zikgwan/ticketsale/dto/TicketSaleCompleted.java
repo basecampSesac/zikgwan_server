@@ -1,5 +1,6 @@
 package basecamp.zikgwan.ticketsale.dto;
 
+import basecamp.zikgwan.review.Review;
 import basecamp.zikgwan.ticketsale.TicketSale;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,8 @@ public class TicketSaleCompleted {
 
     public static TicketSaleCompleted from(TicketSale ticketSale) {
 
+        Review review = ticketSale.getReview();
+
         return TicketSaleCompleted.builder()
                 .tsId(ticketSale.getTsId())
                 .title(ticketSale.getTitle())
@@ -37,7 +40,7 @@ public class TicketSaleCompleted {
                 .sellerId(ticketSale.getSellerId().getUserId())
                 .buyerId(ticketSale.getBuyerId())
                 .updatedAt(ticketSale.getUpdatedAt())
-                .rating(ticketSale.getReview().getRating())
+                .rating(review == null ? null : review.getRating())
                 .build();
     }
 }
