@@ -325,8 +325,8 @@ public class ChatService {
     // 채팅 수 내림차순으로 티켓 10개 조회
     public List<TicketInfoDto> getTicketsOrderByChatDesc() {
 
-        // 10개 제한
-        PageRequest limit = PageRequest.of(0, 10);
+        // 4개 제한
+        PageRequest limit = PageRequest.of(0, 4);
 
         List<TicketRoomCount> ticketRoomCounts = chatRoomRepository.findTicketSalesByChatRoomCount(RoomType.T, limit);
 

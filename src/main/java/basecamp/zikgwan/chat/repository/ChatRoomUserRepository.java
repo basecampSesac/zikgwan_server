@@ -17,8 +17,13 @@ public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Long
 
     boolean existsByChatRoomAndUser(ChatRoom chatRoom, User user);
 
-    // userId로 사용자가 속한 모든 채팅방 조회 (JPQL)
-    @Query("SELECT cru.chatRoom FROM ChatRoomUser cru WHERE cru.user.userId = :userId")
+    // userId로 사용자가 속한 삭제되지 않은 모든 채팅방 조회 (JPQL)
+    @Query("""
+            SELECT cru.chatRoom 
+            FROM ChatRoomUser cru 
+            WHERE cru.user.userId = :userId 
+              AND cru.chatRoom.saveState = 'Y'
+            """)
     List<ChatRoom> findChatRoomsByUserId(@Param("userId") Long userId);
 
     List<ChatRoomUser> findAllByChatRoom(ChatRoom chatRoom);
