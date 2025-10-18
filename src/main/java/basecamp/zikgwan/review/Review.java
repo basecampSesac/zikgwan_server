@@ -2,6 +2,7 @@ package basecamp.zikgwan.review;
 
 import basecamp.zikgwan.common.domain.CreatedEntity;
 import basecamp.zikgwan.common.enums.SaveState;
+import basecamp.zikgwan.ticketsale.TicketSale;
 import basecamp.zikgwan.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -31,8 +33,10 @@ public class Review extends CreatedEntity {
     @Column(name = "review_id")
     private Long reviewId;
 
-    @Column(name = "ref_id", nullable = false)
-    private Long refId;
+    // 거래 1건당 리뷰 1개 (1:1 관계)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ts_id", nullable = false, unique = true)
+    private TicketSale ticketSale;
 
     @Column(name = "rating", nullable = false)
     private Double rating;
@@ -61,12 +65,12 @@ public class Review extends CreatedEntity {
     }
 
     @Builder
-    private Review(Long reviewId, Long refId, Double rating, User reviewer, User reviewee, SaveState saveState) {
+    private Review(Long reviewId, TicketSale ticketSale, Double rating, User reviewer, User reviewee) {
         this.reviewId = reviewId;
-        this.refId = refId;
+        this.ticketSale = ticketSale;
         this.rating = rating;
         this.reviewer = reviewer;
         this.reviewee = reviewee;
-        this.saveState = saveState;
+        this.saveState = SaveState.Y;
     }
 }

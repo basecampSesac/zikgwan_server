@@ -36,16 +36,15 @@ public class ReviewService {
         TicketSale ticketSale = ticketSaleRepository.findById(tsId)
                 .orElseThrow(() -> new NoSuchElementException("티켓 중고거래가 존재하지 않습니다."));
 
-        List<Review> reviews = reviewRepository.findAllByRefIdAndSaveState(tsId, SaveState.Y);
+        List<Review> reviews = reviewRepository.findAllByTicketSaleAndSaveState(ticketSale, SaveState.Y);
 
         isValidReview(ticketSale, reviewer, reviews);
 
         Review review = Review.builder()
-                .refId(ticketSale.getTsId())
+                .ticketSale(ticketSale)
                 .rating(requestDto.getRating())
                 .reviewee(ticketSale.getSellerId())
                 .reviewer(reviewer)
-                .saveState(SaveState.Y)
                 .build();
 
         reviewRepository.save(review);

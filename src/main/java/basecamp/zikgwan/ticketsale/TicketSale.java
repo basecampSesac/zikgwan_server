@@ -2,10 +2,12 @@ package basecamp.zikgwan.ticketsale;
 
 import basecamp.zikgwan.common.domain.BaseEntity;
 import basecamp.zikgwan.common.enums.SaveState;
+import basecamp.zikgwan.review.Review;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleRequest;
 import basecamp.zikgwan.ticketsale.enums.Seat;
 import basecamp.zikgwan.ticketsale.enums.TicketState;
 import basecamp.zikgwan.user.domain.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -120,6 +123,10 @@ public class TicketSale extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private User sellerId;
+
+    // 리뷰와 1:1 관계
+    @OneToOne(mappedBy = "ticketSale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Review review;
 
     // 연관관계 맺으면 구매자 지정 필수가 됨
     // 구매자와 N:1 관계

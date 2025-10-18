@@ -39,4 +39,15 @@ public interface TicketSaleRepository extends JpaRepository<TicketSale, Long> {
             @Param("datePlusOne") LocalDateTime datePlusOne,
             @Param("saveState") SaveState saveState);
 
+    // 거래 완료된 판매자 or 구매자 거래 조회
+    @Query("""
+            SELECT t
+            FROM TicketSale t
+            WHERE t.state = 'END'
+              AND (t.sellerId.userId = :userId OR t.buyerId = :userId)
+              AND t.saveState = 'Y'
+            ORDER BY t.updatedAt DESC
+            """)
+    List<TicketSale> findCompletedSalesByUser(@Param("userId") Long userId);
+
 }

@@ -2,6 +2,7 @@ package basecamp.zikgwan.ticketsale.controller;
 
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.config.security.CustomUserPrincipal;
+import basecamp.zikgwan.ticketsale.dto.TicketSaleCompleted;
 import basecamp.zikgwan.ticketsale.dto.TicketSalePageResponse;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleRequest;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleResponse;
@@ -174,6 +175,19 @@ public class TicketSaleController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("티켓 구매자 지정 성공: buyerId=" + buyerId));
+
+    }
+
+    // 거래완료된 거래 중 sellerId나 buyerId가 현재 사용자인 거래 조회
+    @GetMapping("/completed")
+    public ResponseEntity<ApiResponse<List<TicketSaleCompleted>>> getCompleteTicketSales(
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+
+        List<TicketSaleCompleted> responses = ticketSaleService.getCompletedSales(principal.getUserId());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(responses));
 
     }
 
