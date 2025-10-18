@@ -199,4 +199,18 @@ public class CommunityController {
 
     }
 
+    /**
+     * 모집 마감 임박 모임 4개 조회
+     *
+     * @return 모임 4개
+     */
+    @GetMapping("/closing-soon")
+    public ResponseEntity<ApiResponse<List<CommunityResponse>>> getClosingSoonCommunities() {
+        List<CommunityResponse> responses = communityService.getClosingSoonCommunities();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(responses));
+    }
+
 }
