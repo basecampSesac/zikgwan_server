@@ -29,6 +29,7 @@ public class SseService {
 
     // sse 구독
     public SseEmitter subscribe(Long userId) {
+        // SSE Emitter 생성 및 등록 (기본 타임아웃: 1시간)
         SseEmitter emitter = emitterRepository.save(userId, new SseEmitter(DEFAULT_TIMEOUT));
 
         // 사용자에게 모든 데이터가 전송되었다면 emitter 삭제
@@ -38,16 +39,24 @@ public class SseService {
         // 유효 시간이 만료되었다는 것은 클라이언트와 서버가 연결된 시간동안 아무런 이벤트가 발생하지 않은 것을 의미한다.
         emitter.onTimeout(() -> emitterRepository.deleteById(userId));
 
-        // 첫 구독시에 이벤트를 발생시킨다.
-        // sse 연결이 이루어진 후, 하나의 데이터로 전송되지 않는다면 sse의 유효 시간이 만료되고 503 에러가 발생한다.
-        sendToClient(userId, EventPayload.builder()
-                .message("연결 완료됨 사용자 " + userId)
-                .build());
+        // 첫 구독 시 클라이언트에 즉시 이벤트를 전송한다.
+        // sendToClient() 대신 직접 emitter.send()를 호출해야 한다.
+        // (emitter 초기화 직후 sendToClient() 호출 시, emitterRepository가 아직 준비되지 않아 실패 가능성이 있음)
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connect")
+                    .data("SSE 연결 성공: userId=" + userId));
+            log.info("SSE 첫 이벤트 전송 성공: userId={}", userId);
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+            log.error("SSE 첫 이벤트 전송 실패: userId={}, error={}", userId, e.getMessage());
+        }
 
         log.info("SSE 구독 확인 : {}", emitter);
 
         return emitter;
     }
+
 
     // 55초마다 모든 구독자에게 ping 이벤트 전송 SSE 연결 해지 방지
     @Scheduled(fixedRate = 55000)
