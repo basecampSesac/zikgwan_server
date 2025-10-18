@@ -38,4 +38,18 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
             @Param("date") LocalDateTime date,
             @Param("datePlusOne") LocalDateTime datePlusOne,
             @Param("saveState") SaveState saveState);
+
+    // 모임 마감 직전인 모임 조회
+    @Query("""
+            SELECT c
+            FROM Community c
+            JOIN ChatRoom r ON c.communityId = r.typeId
+            WHERE r.type = basecamp.zikgwan.chat.enums.RoomType.C
+              AND c.saveState = basecamp.zikgwan.common.enums.SaveState.Y
+              AND r.saveState = basecamp.zikgwan.common.enums.SaveState.Y
+              AND (c.memberCount - r.userCount) = 1
+            ORDER BY c.date ASC
+            """)
+    List<Community> findNearlyFullCommunities(Pageable pageable);
+
 }

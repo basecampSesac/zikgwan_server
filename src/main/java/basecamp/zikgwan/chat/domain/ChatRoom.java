@@ -117,5 +117,6 @@ public class ChatRoom extends CreatedEntity {
         this.buyerId = buyerId;
         this.uniqueKey = uniqueKey;
         this.userCount = 0;
+        this.saveState = SaveState.Y;
     }
 }

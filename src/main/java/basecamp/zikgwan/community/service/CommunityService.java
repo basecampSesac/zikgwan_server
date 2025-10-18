@@ -20,6 +20,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -213,5 +214,20 @@ public class CommunityService {
             communities = communityRepository.findAllBySaveStateOrderByMemberCountAsc(SaveState.Y, pageable);
         }
         return communities;
+    }
+
+    // 모집 마감 직전 모임 4개 조회
+    public List<CommunityResponse> getClosingSoonCommunities() {
+        // 4개 제한
+        PageRequest limit = PageRequest.of(0, 4);
+
+        List<Community> communities = communityRepository.findNearlyFullCommunities(limit);
+
+        return communities.stream()
+                .map(c -> {
+                    String imageUrl = imageService.getImage(ImageType.C, c.getCommunityId());
+                    return CommunityResponse.from(c, imageUrl);
+                })
+                .collect(Collectors.toList());
     }
 }
