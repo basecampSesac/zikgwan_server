@@ -62,7 +62,7 @@ public class TicketSaleController {
     @PutMapping(value = "/{tsId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<TicketSaleResponse>> updateTicketSale(
             @PathVariable Long tsId,
-            @RequestPart("image") MultipartFile imageFile,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
             @RequestPart("ticketSaleRequest") TicketSaleRequest ticketSaleRequest,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) throws Exception {
