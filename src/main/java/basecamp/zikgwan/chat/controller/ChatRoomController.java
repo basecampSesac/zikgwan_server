@@ -70,6 +70,19 @@ public class ChatRoomController {
     }
 
     /**
+     * 티켓 채팅방 상세 조회
+     */
+    @GetMapping("/ticket/{tsId}")
+    public ResponseEntity<ApiResponse<ChatRoomDto>> getTicketChatRoom(@PathVariable Long tsId,
+                                                                         @AuthenticationPrincipal CustomUserPrincipal principal) {
+        ChatRoomDto chatRoomDto = chatService.getTicketChatRoom(tsId, principal.getUserId());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(chatRoomDto));
+    }
+
+    /**
      * 채팅에 참여한 모든 유저 조회
      */
     @GetMapping("/user/{roomId}")

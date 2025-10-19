@@ -84,6 +84,25 @@ public class ChatService {
 
     }
 
+    // 티켓 거래의 해당 채팅방 불러오기
+    public ChatRoomDto getTicketChatRoom(Long tsId, Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+
+        // 첫번째 채팅방 1개만 불러옴 -> 여러개 중에 불러와야 됨
+        // TODO 1:1 채팅방 다수, uniqueKey로 찾아야 됨
+        ChatRoom chatRoom = chatRoomRepository.findFirstByTypeIdAndType(tsId, RoomType.T)
+                .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
+
+        return ChatRoomDto.builder()
+                .roomId(chatRoom.getRoomId())
+                .roomName(chatRoom.getRoomName())
+                .typeId(tsId)
+                .type(chatRoom.getType())
+                .userCount(chatRoom.getUserCount())
+                .build();
+    }
+
     // 채팅방 이름으로 채팅방 생성
 
     // 그룹
