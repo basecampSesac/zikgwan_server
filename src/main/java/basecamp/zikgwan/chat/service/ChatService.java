@@ -22,6 +22,7 @@ import basecamp.zikgwan.ticketsale.repository.TicketSaleRepository;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -84,14 +85,13 @@ public class ChatService {
 
     }
 
-    // 티켓 거래의 해당 채팅방 불러오기
+    // 구매자의 티켓 거래 채팅방 불러오기
     public ChatRoomDto getTicketChatRoom(Long tsId, Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
-        // 첫번째 채팅방 1개만 불러옴 -> 여러개 중에 불러와야 됨
-        // TODO 1:1 채팅방 다수, uniqueKey로 찾아야 됨
-        ChatRoom chatRoom = chatRoomRepository.findFirstByTypeIdAndType(tsId, RoomType.T)
+        // 구매자가 참여하고 있는 채팅방 불러옴
+        ChatRoom chatRoom = chatRoomRepository.findByTypeIdAndBuyerIdAndType(tsId, userId, RoomType.T)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
         return ChatRoomDto.builder()
@@ -122,14 +122,18 @@ public class ChatService {
     // 티켓 채팅방
     @Transactional
     public ChatRoomDto createTicketRoom(Long tsId, String roomName, Long userId) {
+        // 로그인한 사용자 존재 확인
         userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
-        // 구매자와 uniqueKey 없음
+        TicketSale ticketSale = ticketSaleRepository.findById(tsId)
+                .orElseThrow(() -> new NoSuchElementException("티켓 거래를 찾을 수 없습니다."));
+
         ChatRoom chatRoom = ChatRoom.builder()
                 .roomName(roomName)
                 .type(RoomType.T)
                 .typeId(tsId)
-                .sellerId(userId)
+                .sellerId(ticketSale.getSellerId().getUserId())
+                .buyerId(userId)
                 .build();
 
         chatRoomRepository.save(chatRoom);
@@ -163,49 +167,76 @@ public class ChatService {
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+        ChatRoom baseRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
-        // 이미 참여 중인 경우 재입장 처리
-        if (chatRoomUserRepository.existsByChatRoomAndUser(chatRoom, user)) {
-            return joinRoom(roomId, user.getUserId());
+        // 이미 참여 중이면 상태만 갱신하고 리턴
+        if (chatRoomUserRepository.existsByChatRoomAndUser(baseRoom, user)) {
+            return joinRoom(baseRoom.getRoomId(), user.getUserId());
         }
 
-        // 티켓 거래방이라면 buyerId 및 uniqueKey 생성
-        if (chatRoom.getType() == RoomType.T) {
-            // 판매자의 id가 아니면 구매자의 id
-            if (!Objects.equals(chatRoom.getSellerId(), user.getUserId())) {
-                // 구매자 입장
+        ChatRoom targetRoom = baseRoom; // 실제로 입장/저장 처리할 방
+
+        if (baseRoom.getType() == RoomType.T) {
+            final Long tsId = baseRoom.getTypeId();
+
+            // 구매자 진입
+            if (!Objects.equals(baseRoom.getSellerId(), user.getUserId())) {
                 Long buyerId = user.getUserId();
 
-                // 이미 동일 거래에 대해 생성된 방이 있는지 확인
-                String candidateKey = chatRoom.generateTicketUniqueKey(
-                        chatRoom.getTypeId(), chatRoom.getSellerId(), buyerId);
+                // 동일 티켓 + buyerId 조합의 방이 이미 있는지 확인
+                Optional<ChatRoom> existedRoomOpt =
+                        chatRoomRepository.findByTypeIdAndBuyerIdAndType(tsId, buyerId, RoomType.T);
 
-                Optional<ChatRoom> existedRoom = chatRoomRepository.findByUniqueKey(candidateKey);
-                if (existedRoom.isPresent()) {
-                    log.info("[재사용] 기존 티켓 거래방 존재: {}", candidateKey);
-                    return joinRoom(existedRoom.get().getRoomId(), user.getUserId());
+                if (existedRoomOpt.isPresent()) {
+                    // 즉시 return 하지 말고, 그 방으로 입장/저장 처리 계속
+                    targetRoom = existedRoomOpt.get();
+                } else {
+                    // 현재 방이 buyer 미지정이면 이 방을 이 buyer에게 귀속
+                    if (baseRoom.getBuyerId() == null) {
+                        baseRoom.updateBuyerId(buyerId);
+                        chatRoomRepository.save(baseRoom);
+                        targetRoom = baseRoom;
+                    } else {
+                        // (옵션) 다른 buyer로 이미 귀속된 방이면 정책에 따라
+                        // - 새 방 생성 or
+                        // - 그 buyer의 방을 찾아 targetRoom으로 설정
+                        // 여기서는 방을 새로 만드는 대신 오류로 처리하거나, 정책 맞게 구현
+                        throw new IllegalStateException("이미 다른 구매자에게 귀속된 거래방입니다.");
+                    }
                 }
 
-                // 기존 방이 없으면 현재 방에 buyerId와 uniqueKey 등록
-                chatRoom.updateBuyerId(buyerId);
-                chatRoom.updateUniqueKey(candidateKey);
-                chatRoomRepository.save(chatRoom);
-                log.info("[신규 등록] 티켓 거래 uniqueKey 생성: {}", candidateKey);
-            }
+                // 판매자 자동 입장 보장
+                TicketSale sale = ticketSaleRepository.findById(tsId)
+                        .orElseThrow(() -> new NoSuchElementException("티켓 거래 정보를 찾을 수 없습니다."));
+                User seller = sale.getSellerId();
+                if (!chatRoomUserRepository.existsByChatRoomAndUser(targetRoom, seller)) {
+                    createChatRoomUserIfAbsent(targetRoom, seller);
+                    targetRoom.upUserCount();
+                    chatRoomRepository.save(targetRoom);
+                    log.info("판매자 {} 자동 입장 완료", seller.getNickname());
+                }
 
-            handleTicketRoomEnter(chatRoom, user);
+                // 구매자 입장 처리 (userCount 증가 + currentRoomId 갱신)
+                handleTicketRoomEnter(targetRoom, user);
+            } else {
+                // 판매자 진입
+                handleTicketRoomEnter(targetRoom, user);
+            }
         } else {
-            handleCommunityRoomEnter(chatRoom, user);
+            // 모임방
+            handleCommunityRoomEnter(targetRoom, user);
         }
 
-        // ChatRoomUser 생성 및 관계 설정
-        ChatRoomUser chatRoomUser = createChatRoomUser(chatRoom, user);
+        // 참여자 기록 (중복 방지)
+        createChatRoomUserIfAbsent(targetRoom, user);
 
-        return ChatUserDto.builder().roomId(chatRoomUser.getChatRoom().getRoomId())
-                .userId(chatRoomUser.getUser().getUserId()).build();
+        return ChatUserDto.builder()
+                .roomId(targetRoom.getRoomId())
+                .userId(user.getUserId())
+                .build();
     }
+
 
     // 채팅방 떠나기 (아예 나감)
     @Transactional
@@ -366,7 +397,8 @@ public class ChatService {
     }
 
     // 모임 채팅방 입장 처리
-    private void handleCommunityRoomEnter(ChatRoom chatRoom, User user) {
+    @Transactional
+    public void handleCommunityRoomEnter(ChatRoom chatRoom, User user) {
         Community community = communityRepository.findById(chatRoom.getTypeId())
                 .orElseThrow(() -> new NoSuchElementException("모임이 존재하지 않습니다."));
 
@@ -392,7 +424,8 @@ public class ChatService {
     }
 
     // 티켓 거래 채팅방 입장 처리
-    private void handleTicketRoomEnter(ChatRoom chatRoom, User user) {
+    @Transactional
+    public void handleTicketRoomEnter(ChatRoom chatRoom, User user) {
         chatRoom.upUserCount();
         chatRoomRepository.save(chatRoom);
 
@@ -403,17 +436,32 @@ public class ChatService {
     }
 
     // ChatRoomUser 엔티티 생성 및 양방향 관계 설정
-    private ChatRoomUser createChatRoomUser(ChatRoom chatRoom, User user) {
-        ChatRoomUser chatRoomUser = ChatRoomUser.builder().build();
+    @Transactional
+    public ChatRoomUser createChatRoomUser(ChatRoom chatRoom, User user) {
+        ChatRoomUser chatRoomUser = ChatRoomUser.builder()
+                .user(user)
+                .chatRoom(chatRoom)
+                .joinedAt(LocalDateTime.now())
+                .build();
 
-        // 양방향 관계 설정
-        user.addChatRoomUser(chatRoomUser);
-        chatRoom.addChatRoomUser(chatRoomUser);
-
-        ChatRoomUser savedChatRoomUser = chatRoomUserRepository.save(chatRoomUser);
+        ChatRoomUser saved = chatRoomUserRepository.save(chatRoomUser);
         log.info("[ChatRoomUser] user={}, roomId={} 연결 완료", user.getNickname(), chatRoom.getRoomId());
 
-        return savedChatRoomUser;
+        return saved;
+    }
+
+    @Transactional
+    public ChatRoomUser createChatRoomUserIfAbsent(ChatRoom chatRoom, User user) {
+        if (chatRoomUserRepository.existsByChatRoomAndUser(chatRoom, user)) {
+            // 이미 있으면 아무것도 안 함
+            return chatRoomUserRepository.findByChatRoomAndUser(chatRoom, user).get();
+        }
+        ChatRoomUser cru = ChatRoomUser.builder()
+                .user(user)
+                .chatRoom(chatRoom)
+                .joinedAt(LocalDateTime.now())
+                .build();
+        return chatRoomUserRepository.save(cru);
     }
 
 }

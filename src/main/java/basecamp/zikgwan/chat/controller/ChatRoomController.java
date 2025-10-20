@@ -70,7 +70,7 @@ public class ChatRoomController {
     }
 
     /**
-     * 티켓 채팅방 상세 조회
+     * 구매자의 티켓 채팅방 상세 조회
      */
     @GetMapping("/ticket/{tsId}")
     public ResponseEntity<ApiResponse<ChatRoomDto>> getTicketChatRoom(@PathVariable Long tsId,
