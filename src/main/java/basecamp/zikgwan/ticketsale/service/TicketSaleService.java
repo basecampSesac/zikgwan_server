@@ -70,7 +70,7 @@ public class TicketSaleService {
         }
         log.info("티켓 등록 확인 : {}", savedticketSale.getTitle());
 
-        return TicketSaleResponse.from(savedticketSale, imageUrl);
+        return TicketSaleResponse.from(savedticketSale, imageUrl, savedticketSale.getSellerId().getAverageRating());
     }
 
     // 티켓 판매글 수정
@@ -99,7 +99,7 @@ public class TicketSaleService {
             System.out.println("imageUrl : " + imageUrl);
         }
 
-        return TicketSaleResponse.from(savedTicketSale, imageUrl);
+        return TicketSaleResponse.from(savedTicketSale, imageUrl, savedTicketSale.getSellerId().getAverageRating());
     }
 
     // 티켓 판매글 삭제 - (soft delete)
@@ -128,7 +128,7 @@ public class TicketSaleService {
         imageUrl = imageService.getImage(ImageType.T, tsId);
         System.out.println("티켓 판매글 조회 imageUrl : " + imageUrl);
 
-        return TicketSaleResponse.from(ticketSale, imageUrl);
+        return TicketSaleResponse.from(ticketSale, imageUrl, ticketSale.getSellerId().getAverageRating());
     }
 
     // 티켓 판매글 전체 조회
@@ -139,7 +139,7 @@ public class TicketSaleService {
         List<TicketSaleResponse> content = ticketSales.stream()
                 .map(t -> {
                     String imageUrl = imageService.getImage(ImageType.T, t.getTsId());
-                    return TicketSaleResponse.from(t, imageUrl);
+                    return TicketSaleResponse.from(t, imageUrl, t.getSellerId().getAverageRating());
                 })
                 .collect(Collectors.toList());
 
@@ -195,7 +195,7 @@ public class TicketSaleService {
         return ticketSales.stream()
                 .map(t -> {
                     String imageUrl = imageService.getImage(ImageType.T, t.getTsId());
-                    return TicketSaleResponse.from(t, imageUrl);
+                    return TicketSaleResponse.from(t, imageUrl, t.getSellerId().getAverageRating());
                 })
                 .collect(Collectors.toList());
     }
