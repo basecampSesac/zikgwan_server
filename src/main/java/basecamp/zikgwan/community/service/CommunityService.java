@@ -1,5 +1,8 @@
 package basecamp.zikgwan.community.service;
 
+import basecamp.zikgwan.chat.domain.ChatRoom;
+import basecamp.zikgwan.chat.enums.RoomType;
+import basecamp.zikgwan.chat.repository.ChatRoomRepository;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
 import basecamp.zikgwan.community.dto.CommunityPageResponse;
@@ -33,6 +36,7 @@ public class CommunityService {
     private final CommunityRepository communityRepository;
     private final UserRepository userRepository;
     private final ImageService imageService;
+    private final ChatRoomRepository chatRoomRepository;
 
     // 모임 등록
     @Transactional
@@ -102,13 +106,18 @@ public class CommunityService {
     @Transactional
     public void deleteCommunity(Long communityId, Long userId) {
         Community community = communityRepository.findById(communityId)
-                .orElseThrow(() -> new IllegalArgumentException("모임을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다."));
 
         if (!community.getUser().getUserId().equals(userId)) {
             throw new IllegalArgumentException("삭제 권한이 없습니다.");
         }
 
+        ChatRoom chatRoom = chatRoomRepository.findFirstByTypeIdAndType(communityId, RoomType.C)
+                .orElseThrow(() -> new NoSuchElementException("치탱방을 찾을 수 없습니다."));
+
+        // 모임 삭제 시 연관된 채팅방도 비활성화
         community.setSaveState(SaveState.N);
+        chatRoom.updateSaveState(SaveState.N);
     }
 
     // 모임 상태 변경 (ING ↔ END)

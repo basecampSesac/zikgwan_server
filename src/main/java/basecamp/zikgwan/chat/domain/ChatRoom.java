@@ -88,6 +88,10 @@ public class ChatRoom extends CreatedEntity {
         this.uniqueKey = uniqueKey;
     }
 
+    public void updateSaveState(SaveState saveState) {
+        this.saveState = saveState;
+    }
+
     // unique 키 생성 메서드
     public String generateTicketUniqueKey(Long tsId, Long sellerId, Long buyerId) {
         return "TICKET_" + tsId + "_SELLER_" + sellerId + "_BUYER_" + buyerId;
