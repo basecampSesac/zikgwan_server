@@ -13,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -26,7 +27,16 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "chat_room")
+@Table(
+        name = "chat_room",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_chat_room_ticket_buyer",
+                        columnNames = {"type_id", "buyer_id"}
+                )
+        }
+)
+
 public class ChatRoom extends CreatedEntity {
 
     @Id
@@ -50,9 +60,6 @@ public class ChatRoom extends CreatedEntity {
 
     @Column(name = "buyer_id", nullable = true)
     private Long buyerId;
-
-    @Column(name = "unique_key", unique = true, length = 100, nullable = true)
-    private String uniqueKey;   // tsId + seller_id + buyer_id 조합
 
     // 인원수는 채팅방 생성시 0이며 함수를 통해 ++
     @ColumnDefault("'0'")
@@ -84,17 +91,8 @@ public class ChatRoom extends CreatedEntity {
         this.buyerId = buyerId;
     }
 
-    public void updateUniqueKey(String uniqueKey) {
-        this.uniqueKey = uniqueKey;
-    }
-
     public void updateSaveState(SaveState saveState) {
         this.saveState = saveState;
-    }
-
-    // unique 키 생성 메서드
-    public String generateTicketUniqueKey(Long tsId, Long sellerId, Long buyerId) {
-        return "TICKET_" + tsId + "_SELLER_" + sellerId + "_BUYER_" + buyerId;
     }
 
     /**
@@ -111,15 +109,14 @@ public class ChatRoom extends CreatedEntity {
     }
 
     @Builder
-    private ChatRoom(Long roomId, String roomName, RoomType type, Long typeId, Long sellerId, Long buyerId,
-                     String uniqueKey) {
+    private ChatRoom(Long roomId, String roomName, RoomType type, Long typeId, Long buyerId, Long sellerId
+    ) {
         this.roomId = roomId;
         this.roomName = roomName;
         this.type = type;
         this.typeId = typeId;
-        this.sellerId = sellerId;
         this.buyerId = buyerId;
-        this.uniqueKey = uniqueKey;
+        this.sellerId = sellerId;
         this.userCount = 0;
         this.saveState = SaveState.Y;
     }

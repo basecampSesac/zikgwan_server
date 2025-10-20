@@ -22,7 +22,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "ORDER BY COUNT(c) DESC")
     List<TicketRoomCount> findTicketSalesByChatRoomCount(@Param("type") RoomType type, Pageable pageable);
 
-    Optional<ChatRoom> findByUniqueKey(String uniqueKey);
-
     Optional<ChatRoom> findFirstByTypeIdAndType(Long typeId, RoomType roomType);
+
+    Optional<ChatRoom> findByTypeIdAndBuyerIdAndType(Long typeId, Long buyerId, RoomType type);
 }
