@@ -79,6 +79,7 @@ public class SocialLoginService {
         final UserResponseDto responseUserDTO = UserResponseDto.builder().email(user.getEmail())
                 .userId(user.getUserId()).nickname(user.getNickname()).token(accessToken) // 토큰 설정
                 .refreshToken(refreshToken) // 리프레쉬토큰
+                .club(user.getClub())
                 .build();
 
         return responseUserDTO;
