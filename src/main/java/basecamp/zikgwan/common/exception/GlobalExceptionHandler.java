@@ -6,12 +6,10 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import java.util.Map;
-import java.util.HashMap;
-import org.springframework.validation.FieldError;
 
 /**
  * 글로벌 예외 처리
@@ -55,6 +53,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.fail(errors));
+    }
+
+    // 로그인 필요 예외
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException e) {
+        return ResponseEntity
+                .status(e.getStatus())
+                .body(ApiResponse.fail(e.getMessage()));
     }
 
     // 예상치 못한 서버 오류
