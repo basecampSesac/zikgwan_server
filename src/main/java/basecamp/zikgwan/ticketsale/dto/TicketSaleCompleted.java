@@ -20,6 +20,7 @@ public class TicketSaleCompleted {
     private String away;
     private String stadium;
     private String state;
+    private String sellerNickname;
     private Long sellerId;
     private Long buyerId;
     private LocalDateTime updatedAt;
@@ -37,6 +38,7 @@ public class TicketSaleCompleted {
                 .away(ticketSale.getAway())
                 .stadium(ticketSale.getStadium())
                 .state(ticketSale.getState().name())
+                .sellerNickname(ticketSale.getSellerId().getNickname())
                 .sellerId(ticketSale.getSellerId().getUserId())
                 .buyerId(ticketSale.getBuyerId())
                 .updatedAt(ticketSale.getUpdatedAt())
