@@ -175,6 +175,7 @@ public class UserController {
                     .userId(user.getUserId())
                     .nickname(user.getNickname())
                     .provider(user.getProvider())
+                    .club(user.getClub())
                     .token(token) // 토큰
                     .build();
 

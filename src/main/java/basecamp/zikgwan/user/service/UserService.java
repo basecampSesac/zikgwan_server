@@ -254,8 +254,9 @@ public class UserService {
                 .email(tokenEntity.getUser().getEmail())
                 .nickname(tokenEntity.getUser().getNickname())
                 .provider(tokenEntity.getUser().getProvider())
+                .club(tokenEntity.getUser().getClub())
                 .token(newAccessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(null)//null or refreshToken
                 .build();
 
     }
