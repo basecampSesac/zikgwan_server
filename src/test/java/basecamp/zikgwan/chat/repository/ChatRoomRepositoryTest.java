@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import basecamp.zikgwan.chat.domain.ChatRoom;
 import basecamp.zikgwan.chat.dto.TicketRoomCount;
 import basecamp.zikgwan.chat.enums.RoomType;
+import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.config.JpaAuditingConfig;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +53,7 @@ class ChatRoomRepositoryTest {
 
         // when
         List<TicketRoomCount> ticketSalesByChatRoomCount = chatRoomRepository.findTicketSalesByChatRoomCount(RoomType.T,
-                limit);
+                limit, SaveState.Y);
 
         // then
         assertThat(ticketSalesByChatRoomCount).hasSize(5)
