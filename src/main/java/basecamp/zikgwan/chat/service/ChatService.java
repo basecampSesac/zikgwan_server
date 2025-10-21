@@ -13,6 +13,7 @@ import basecamp.zikgwan.chat.enums.RoomType;
 import basecamp.zikgwan.chat.repository.ChatRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
+import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
 import basecamp.zikgwan.community.repository.CommunityRepository;
 import basecamp.zikgwan.notification.dto.EventPayload;
@@ -378,7 +379,8 @@ public class ChatService {
         // 4개 제한
         PageRequest limit = PageRequest.of(0, 4);
 
-        List<TicketRoomCount> ticketRoomCounts = chatRoomRepository.findTicketSalesByChatRoomCount(RoomType.T, limit);
+        List<TicketRoomCount> ticketRoomCounts = chatRoomRepository.findTicketSalesByChatRoomCount(RoomType.T, limit,
+                SaveState.Y);
 
         List<Long> tsIds = ticketRoomCounts.stream().map(TicketRoomCount::getTsId).toList();
 

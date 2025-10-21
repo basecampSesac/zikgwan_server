@@ -246,6 +246,7 @@ public class TicketSaleService {
         return update.getState();
     }
 
+    // 티켓 구매자 지정
     @Transactional
     public void selectTicketSaleBuyer(Long tsId, Long userId, Long buyerId)
             throws IllegalAccessException {
