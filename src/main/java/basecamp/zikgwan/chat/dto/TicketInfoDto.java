@@ -39,6 +39,8 @@ public class TicketInfoDto {
 
     private SaveState saveState;
 
+    private String imageUrl;
+
     private Long chatRoomCount;
 
 }

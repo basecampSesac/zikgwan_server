@@ -3,9 +3,11 @@ package basecamp.zikgwan.chat.controller;
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
 import basecamp.zikgwan.chat.dto.ChatUserDto;
+import basecamp.zikgwan.chat.dto.NotificationChatRoomDto;
 import basecamp.zikgwan.chat.dto.TicketInfoDto;
 import basecamp.zikgwan.chat.dto.UserInfoDto;
 import basecamp.zikgwan.chat.service.ChatService;
+import basecamp.zikgwan.common.aop.LoginCheck;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.config.security.CustomUserPrincipal;
 import java.util.List;
@@ -74,12 +76,26 @@ public class ChatRoomController {
      */
     @GetMapping("/ticket/{tsId}")
     public ResponseEntity<ApiResponse<ChatRoomDto>> getTicketChatRoom(@PathVariable Long tsId,
-                                                                         @AuthenticationPrincipal CustomUserPrincipal principal) {
+                                                                      @AuthenticationPrincipal CustomUserPrincipal principal) {
         ChatRoomDto chatRoomDto = chatService.getTicketChatRoom(tsId, principal.getUserId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(chatRoomDto));
+    }
+
+    /**
+     * 채팅방 상세조회
+     */
+    @LoginCheck
+    @GetMapping("/detail/{roomId}")
+    public ResponseEntity<ApiResponse<NotificationChatRoomDto>> getChatRoomDetail(@PathVariable Long roomId) {
+        NotificationChatRoomDto chatRoomDto = chatService.getChatRoomDetail(roomId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(chatRoomDto));
+
     }
 
     /**

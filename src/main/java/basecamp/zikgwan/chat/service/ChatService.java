@@ -6,6 +6,7 @@ import basecamp.zikgwan.chat.domain.ChatRoomUser;
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
 import basecamp.zikgwan.chat.dto.ChatUserDto;
+import basecamp.zikgwan.chat.dto.NotificationChatRoomDto;
 import basecamp.zikgwan.chat.dto.TicketInfoDto;
 import basecamp.zikgwan.chat.dto.TicketRoomCount;
 import basecamp.zikgwan.chat.dto.UserInfoDto;
@@ -16,6 +17,8 @@ import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
 import basecamp.zikgwan.community.repository.CommunityRepository;
+import basecamp.zikgwan.image.enums.ImageType;
+import basecamp.zikgwan.image.service.ImageService;
 import basecamp.zikgwan.notification.dto.EventPayload;
 import basecamp.zikgwan.notification.service.SseService;
 import basecamp.zikgwan.ticketsale.TicketSale;
@@ -49,6 +52,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomUserRepository chatRoomUserRepository;
     private final SseService sseService;
+    private final ImageService imageService;
 
     // 모든 채팅방 목록 불러오기
     public List<ChatRoomDto> getChatRooms() {
@@ -101,6 +105,18 @@ public class ChatService {
                 .typeId(tsId)
                 .type(chatRoom.getType())
                 .userCount(chatRoom.getUserCount())
+                .build();
+    }
+
+    // 채팅방 상세조회
+    public NotificationChatRoomDto getChatRoomDetail(Long roomId) {
+
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
+
+        return NotificationChatRoomDto.builder()
+                .roomId(chatRoom.getRoomId())
+                .roomName(chatRoom.getRoomName())
                 .build();
     }
 
@@ -373,29 +389,52 @@ public class ChatService {
 
     }
 
-    // 채팅 수 내림차순으로 티켓 10개 조회
     public List<TicketInfoDto> getTicketsOrderByChatDesc() {
 
-        // 4개 제한
         PageRequest limit = PageRequest.of(0, 4);
 
-        List<TicketRoomCount> ticketRoomCounts = chatRoomRepository.findTicketSalesByChatRoomCount(RoomType.T, limit,
-                SaveState.Y);
+        List<TicketRoomCount> ticketRoomCounts = chatRoomRepository.findTicketSalesByChatRoomCount(
+                RoomType.T, SaveState.Y, limit);
 
-        List<Long> tsIds = ticketRoomCounts.stream().map(TicketRoomCount::getTsId).toList();
+        List<Long> tsIds = ticketRoomCounts.stream()
+                .map(TicketRoomCount::getTsId)
+                .toList();
 
         List<TicketSale> ticketSales = ticketSaleRepository.findByTsIdIn(tsIds);
 
-        // Map으로 최적화 (tsId를 key로)
-        Map<Long, TicketSale> saleMap = ticketSales.stream().collect(Collectors.toMap(TicketSale::getTsId, ts -> ts));
+        // Map으로 최적화 (tsId → TicketSale)
+        Map<Long, TicketSale> saleMap = ticketSales.stream()
+                .collect(Collectors.toMap(TicketSale::getTsId, ts -> ts));
 
-        return ticketRoomCounts.stream().map(c -> {
-            TicketSale s = saleMap.get(c.getTsId());
-            return TicketInfoDto.builder().tsId(s.getTsId()).title(s.getTitle()).description(s.getDescription())
-                    .price(s.getPrice()).gameDay(s.getGameDay()).ticketCount(s.getTicketCount()).home(s.getHome())
-                    .away(s.getAway()).stadium(s.getStadium()).adjacentSeat(s.getAdjacentSeat()).state(s.getState())
-                    .saveState(s.getSaveState()).chatRoomCount(c.getChatRoomCount()).build();
-        }).toList();
+        // 각 티켓별로 이미지 URL을 조회해 Dto에 포함
+        return ticketRoomCounts.stream()
+                .map(c -> {
+                    TicketSale s = saleMap.get(c.getTsId());
+                    if (s == null) {
+                        return null;
+                    }
+
+                    String imageUrl = imageService.getImage(ImageType.T, s.getTsId());
+
+                    return TicketInfoDto.builder()
+                            .tsId(s.getTsId())
+                            .title(s.getTitle())
+                            .description(s.getDescription())
+                            .price(s.getPrice())
+                            .gameDay(s.getGameDay())
+                            .ticketCount(s.getTicketCount())
+                            .home(s.getHome())
+                            .away(s.getAway())
+                            .stadium(s.getStadium())
+                            .adjacentSeat(s.getAdjacentSeat())
+                            .state(s.getState())
+                            .saveState(s.getSaveState())
+                            .chatRoomCount(c.getChatRoomCount())
+                            .imageUrl(imageUrl)
+                            .build();
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     // 모임 채팅방 입장 처리
@@ -465,5 +504,4 @@ public class ChatService {
                 .build();
         return chatRoomUserRepository.save(cru);
     }
-
 }
