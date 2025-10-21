@@ -1,8 +1,10 @@
 package basecamp.zikgwan.community.service;
 
 import basecamp.zikgwan.chat.domain.ChatRoom;
+import basecamp.zikgwan.chat.domain.ChatRoomUser;
 import basecamp.zikgwan.chat.enums.RoomType;
 import basecamp.zikgwan.chat.repository.ChatRoomRepository;
+import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
 import basecamp.zikgwan.community.dto.CommunityPageResponse;
@@ -35,8 +37,10 @@ import org.springframework.web.multipart.MultipartFile;
 public class CommunityService {
     private final CommunityRepository communityRepository;
     private final UserRepository userRepository;
-    private final ImageService imageService;
     private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomUserRepository chatRoomUserRepository;
+    private final ImageService imageService;
+
 
     // 모임 등록
     @Transactional
@@ -113,7 +117,14 @@ public class CommunityService {
         }
 
         ChatRoom chatRoom = chatRoomRepository.findFirstByTypeIdAndType(communityId, RoomType.C)
-                .orElseThrow(() -> new NoSuchElementException("치탱방을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("채팅방을 찾을 수 없습니다."));
+
+        List<ChatRoomUser> chatRoomUsers = chatRoomUserRepository.findAllByChatRoom(chatRoom);
+
+        // 채팅 참여 유저는 hard delete
+        if (!chatRoomUsers.isEmpty()) {
+            chatRoomUserRepository.deleteAll(chatRoomUsers);
+        }
 
         // 모임 삭제 시 연관된 채팅방도 비활성화
         community.setSaveState(SaveState.N);
