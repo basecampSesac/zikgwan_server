@@ -16,6 +16,7 @@ public class TicketSaleCompleted {
     private Long tsId;
     private String title;
     private Integer price;
+    private LocalDateTime gameDay; // 경기 일자
     private String home;
     private String away;
     private String stadium;
@@ -34,6 +35,7 @@ public class TicketSaleCompleted {
                 .tsId(ticketSale.getTsId())
                 .title(ticketSale.getTitle())
                 .price(ticketSale.getPrice())
+                .gameDay(ticketSale.getGameDay())
                 .home(ticketSale.getHome())
                 .away(ticketSale.getAway())
                 .stadium(ticketSale.getStadium())
