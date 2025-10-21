@@ -1,9 +1,12 @@
 package basecamp.zikgwan.common.exception;
 
 import basecamp.zikgwan.common.dto.ApiResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -22,6 +25,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException e) {
         log.warn("잘못된 요청: {}", e.getMessage(), e);
+
+        //소셜로그인 에러페이지 리다이렉트
+        String msg = e.getMessage();
+        if (msg != null && msg.startsWith("SOCIAL_LOGIN_ERROR")) {
+            String cleanMessage = msg.replaceFirst("SOCIAL_LOGIN_ERROR \\s*", "");
+            String redirectUrl = "http://localhost:5174/login?error="
+                    + URLEncoder.encode(cleanMessage, StandardCharsets.UTF_8);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Location", redirectUrl);
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        }
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.fail(e.getMessage()));
