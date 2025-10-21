@@ -7,6 +7,7 @@ import basecamp.zikgwan.email.enums.Verified;
 import basecamp.zikgwan.email.enums.VerifiedType;
 import basecamp.zikgwan.email.repository.EmailVerificationRepository;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -106,5 +107,10 @@ public class EmailVerificationService {
                         VerifiedType.valueOf(verifiedType))
                 .map(v -> v.getVerified() == Verified.Y)
                 .orElse(false);
+    }
+
+    //인증 유효범위 체크
+    public LocalDateTime verifiedTimeCheck(String email, VerifiedType verifiedType){
+        return verifyRepository.findLatestCreatedAtByEmailAndVerifiedTypeAndVerified(email, verifiedType, Verified.Y);
     }
 }

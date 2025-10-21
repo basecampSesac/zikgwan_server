@@ -3,6 +3,7 @@ package basecamp.zikgwan.user.service;
 
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.config.security.TokenProvider;
+import basecamp.zikgwan.email.enums.VerifiedType;
 import basecamp.zikgwan.email.service.EmailVerificationService;
 import basecamp.zikgwan.user.domain.Token;
 import basecamp.zikgwan.user.domain.User;
@@ -41,6 +42,10 @@ public class UserService {
         return userRepository.existsByNickname(nickname);
     }
 
+    public Boolean checkEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
     /**
      * 회원가입
      *
@@ -50,6 +55,9 @@ public class UserService {
     @Transactional
     public User registerUser(final User user) {
 
+        //인증 유효범위 시간체크를 위한 현재시간
+        LocalDateTime nowTime = LocalDateTime.now();
+
         //유효성 검사 이메일 인증결과 확인
         boolean result = emailVerifyService.isVerified(user.getEmail(), "S");
         if (!result) {
@@ -58,6 +66,13 @@ public class UserService {
         //유효성 검사 userEntity 혹은 email 이 null 인 경우 예외 던짐
         if (user.getEmail() == null) {
             throw new RuntimeException("Invalid arguments");
+        }
+
+        //인증요청한 시간에서 10분이내로 회원가입가능
+        LocalDateTime emailVerificationTime = emailVerifyService.verifiedTimeCheck(user.getEmail(), VerifiedType.S);
+        emailVerificationTime = emailVerificationTime.plusMinutes(10);
+        if (!emailVerificationTime.isAfter(nowTime)) {
+            throw new IllegalArgumentException("회원가입 가능한 유효시간이 초과하였습니다.");
         }
 
         final String email = user.getEmail();
@@ -117,13 +132,13 @@ public class UserService {
         }
 
         String newEncodedPassword = null;
-        if ("local".equals(chkUser.getProvider()) && newPassword != null && !newPassword.isEmpty() ) {
+        if ("local".equals(chkUser.getProvider()) && newPassword != null && !newPassword.isEmpty()) {
             newEncodedPassword = passwordEncoder.encode(newPassword);
             //새 비밀번호가 기존 비밀번호와 동일한지 확인
             if (passwordEncoder.matches(newPassword, chkUser.getPassword())) {
                 throw new IllegalArgumentException("새 비밀번호는 기존 비밀번호와 달라야 합니다.");
             }
-        }else {
+        } else {
             newEncodedPassword = chkUser.getPassword();
         }
 
@@ -269,11 +284,23 @@ public class UserService {
      */
     @Transactional
     public User passwordReset(final UserRequestDto userDto) {
+
+        //인증 유효범위 시간체크를 위한 현재시간
+        LocalDateTime nowTime = LocalDateTime.now();
+
         //유효성 검사 이메일 인증결과 확인
         boolean result = emailVerifyService.isVerified(userDto.getEmail(), "P");
         if (!result) {
             throw new IllegalArgumentException("이메일 인증결과 확인이 실패하였습니다.");
         }
+
+        //인증요청한 시간에서 10분이내로 회원가입가능
+        LocalDateTime emailVerificationTime = emailVerifyService.verifiedTimeCheck(userDto.getEmail(), VerifiedType.P);
+        emailVerificationTime = emailVerificationTime.plusMinutes(10);
+        if (!emailVerificationTime.isAfter(nowTime)) {
+            throw new IllegalArgumentException("비밀번호 재설정 가능한 유효시간이 초과하였습니다.");
+        }
+
         //유효성 검사 userEntity 혹은 email 이 null 인 경우 예외 던짐
         if (userDto.getEmail() == null) {
             throw new RuntimeException("Invalid arguments");
@@ -286,6 +313,11 @@ public class UserService {
         }
 
         User user = userRepository.findByEmail(userDto.getEmail());
+
+        //소셜로그인 사용자는 비밀번호 재설정 불가
+        if (!user.getProvider().equals("local")) {
+            throw new IllegalArgumentException("소셜로그인 사용자는 비밀번호 재설정 불가");
+        }
         String newEncodedPassword = passwordEncoder.encode(newPassword);
         System.out.println("newEncodedPassword : " + newEncodedPassword);
 
@@ -294,7 +326,7 @@ public class UserService {
                 .nickname(user.getNickname())
                 .password(newEncodedPassword)
                 .saveState(SaveState.Y)
-                .email(userDto.getEmail())
+                .email(user.getEmail())
                 .userId(user.getUserId())
                 .provider(user.getProvider()).build();
 
