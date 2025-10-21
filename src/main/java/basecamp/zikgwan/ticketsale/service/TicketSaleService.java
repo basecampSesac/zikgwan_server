@@ -1,5 +1,10 @@
 package basecamp.zikgwan.ticketsale.service;
 
+import basecamp.zikgwan.chat.domain.ChatRoom;
+import basecamp.zikgwan.chat.domain.ChatRoomUser;
+import basecamp.zikgwan.chat.enums.RoomType;
+import basecamp.zikgwan.chat.repository.ChatRoomRepository;
+import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.image.enums.ImageType;
 import basecamp.zikgwan.image.service.ImageService;
@@ -17,6 +22,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +40,8 @@ public class TicketSaleService {
 
     private final TicketSaleRepository ticketSaleRepository;
     private final UserRepository userRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomUserRepository chatRoomUserRepository;
     private final ImageService imageService;
 
     // 티켓 판매글 등록
@@ -112,7 +120,21 @@ public class TicketSaleService {
             throw new IllegalAccessException("게시글은 본인만 삭제할 수 있습니다.");
         }
 
+        // 연관된 채팅방 모두 찾음
+        List<ChatRoom> chatRooms = chatRoomRepository.findAllByTypeIdAndType(tsId, RoomType.T);
+
         ticketSale.updateSaveState(SaveState.N);
+
+        // 채팅방이 존재하면 모두 SaveState를 N으로 변경
+        if (!chatRooms.isEmpty()) {
+            chatRooms.forEach(c -> c.updateSaveState(SaveState.N));
+
+            List<ChatRoom> deletedChatRooms = chatRoomRepository.saveAll(chatRooms);
+
+            // 티켓 채팅방에 참여한 사용자 목록 전부 hard delete
+            chatRoomUserRepository.deleteAllByChatRoomIn(deletedChatRooms);
+
+        }
 
         ticketSaleRepository.save(ticketSale);
 

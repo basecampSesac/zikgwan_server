@@ -34,4 +34,7 @@ public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Long
             "WHERE cru.chatRoom = :chatRoom")
     List<ChatRoomUser> findAllWithUserByChatRoom(@Param("chatRoom") ChatRoom chatRoom);
 
+    // 해당 채팅방에 참여한 모든 사용자 삭제
+    void deleteAllByChatRoomIn(List<ChatRoom> chatRooms);
+
 }
