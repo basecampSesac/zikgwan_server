@@ -273,20 +273,24 @@ public class TicketSaleService {
         List<TicketSale> completedSales = ticketSaleRepository.findCompletedSalesByUser(userId);
 
         return completedSales.stream()
-                .map(TicketSaleCompleted::from)
+                .map((TicketSale ticketSale) -> TicketSaleCompleted.from(ticketSale,
+                        imageService.getImage(ImageType.U, ticketSale.getSellerId().getUserId())))
                 .collect(Collectors.toList());
     }
 
     // 판매자와 채팅중인 구매자 리스트 조회
-    public List<BuyerInfo> getAllBuyers(Long userId) {
+    public List<BuyerInfo> getAllBuyers(Long userId, Long tsId) {
 
         // 판매자가 참여중인 채팅방 리스트 조회
-        List<ChatRoom> chatRooms = chatRoomRepository.findAllBySellerId(userId);
+        List<ChatRoom> chatRooms = chatRoomRepository.findAllBySellerIdAndTypeIdAndType(userId, tsId, RoomType.T);
 
         // 채팅방 리스트에서 구매자 id를 모두 뽑고 구매자 정보를 매핑
         if (!chatRooms.isEmpty()) {
-            List<User> buyers = chatRooms.stream()
+            List<Long> buyersId = chatRooms.stream()
                     .map(ChatRoom::getBuyerId)
+                    .toList();
+
+            List<User> buyers = buyersId.stream()
                     .map(b -> userRepository.findById(b)
                             .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다.")))
                     .toList();

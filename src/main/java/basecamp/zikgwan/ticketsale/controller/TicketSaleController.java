@@ -162,6 +162,7 @@ public class TicketSaleController {
     }
 
     // 거래완료된 거래 중 sellerId나 buyerId가 현재 사용자인 거래 조회
+    @LoginCheck
     @GetMapping("/completed")
     public ResponseEntity<ApiResponse<List<TicketSaleCompleted>>> getCompleteTicketSales(
             @AuthenticationPrincipal CustomUserPrincipal principal) {
@@ -176,11 +177,11 @@ public class TicketSaleController {
 
     // 판매자와 채팅중인 구매자 리스트 조회
     @LoginCheck
-    @GetMapping("/buyer")
+    @GetMapping("/buyer/{tsId}")
     public ResponseEntity<ApiResponse<List<BuyerInfo>>> getAllBuyers(
-            @AuthenticationPrincipal CustomUserPrincipal principal) {
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long tsId) {
 
-        List<BuyerInfo> responses = ticketSaleService.getAllBuyers(principal.getUserId());
+        List<BuyerInfo> responses = ticketSaleService.getAllBuyers(principal.getUserId(), tsId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
