@@ -43,4 +43,8 @@ public class TicketInfoDto {
 
     private Long chatRoomCount;
 
+    private String nickname;
+
+    private Double rating;
+
 }
