@@ -162,7 +162,7 @@ public class UserController {
             //Refresh Token을 HttpOnly 쿠키로 저장
             Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
             refreshCookie.setHttpOnly(true); // JavaScript 접근 불가
-            refreshCookie.setSecure(false);  // HTTPS 시 true
+            refreshCookie.setSecure(true);  // HTTPS 시 true
             refreshCookie.setPath("/");
             refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
             refreshCookie.setAttribute("SameSite", "None"); // 크로스 도메인 쿠키 허용
