@@ -1,6 +1,7 @@
 package basecamp.zikgwan.user.controller;
 
 
+import basecamp.zikgwan.common.aop.LoginCheck;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.config.security.CustomUserPrincipal;
@@ -104,14 +105,12 @@ public class UserController {
      * @param principal
      * @return
      */
+    @LoginCheck
     @PutMapping("/{id:[0-9]+}")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@PathVariable Long id,
                                                                    @RequestBody @Valid UserRequestDto userDTO,
                                                                    @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("로그인정보가 없습니다."));
-        }
         if (!id.equals(principal.getUserId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail("권한이 없습니다."));
         }
@@ -198,13 +197,11 @@ public class UserController {
      * @param principal
      * @return
      */
+    @LoginCheck
     @PatchMapping("/delete/{id:[0-9]+}")
     public ResponseEntity<ApiResponse<Boolean>> userDelete(@PathVariable Long id,
                                                            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        if (!id.equals(principal.getUserId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail("권한이 없습니다."));
-        }
         Boolean successData = userService.userDelete(id);
 
         if (successData) {
@@ -220,6 +217,7 @@ public class UserController {
      * @param principal
      * @return
      */
+    @LoginCheck
     @GetMapping("/logout")
     public ResponseEntity<ApiResponse<Boolean>> logout(@AuthenticationPrincipal CustomUserPrincipal principal,
                                                        HttpServletResponse response) {

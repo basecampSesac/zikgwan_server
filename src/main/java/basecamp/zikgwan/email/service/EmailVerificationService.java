@@ -71,7 +71,7 @@ public class EmailVerificationService {
         LocalDateTime verifyTime = LocalDateTime.now();
 
         //이메일로 인증요청 건이 있는지  확인
-        EmailVerification verify = verifyRepository.findFirstByEmailAndVerifiedTypeOrderByCreatedAtDesc(email,
+        EmailVerification verify = verifyRepository.findTop1ByEmailAndVerifiedTypeOrderByCreatedAtDesc(email,
                         verifiedType)
                 .orElseThrow(() -> new IllegalArgumentException("이메일 인증 요청이 없습니다."));
 
@@ -88,7 +88,7 @@ public class EmailVerificationService {
         }
 
         if (verify.getVerified() == Verified.Y) {
-            return true;
+            throw new IllegalArgumentException("이미 인증이 완료된 코드입니다.");
         }
 
         verify.updateVerified(); // 상태 변경
@@ -103,7 +103,7 @@ public class EmailVerificationService {
      * @return
      */
     public boolean isVerified(String email, String verifiedType) {
-        return verifyRepository.findFirstByEmailAndVerifiedTypeOrderByCreatedAtDesc(email,
+        return verifyRepository.findTop1ByEmailAndVerifiedTypeOrderByCreatedAtDesc(email,
                         VerifiedType.valueOf(verifiedType))
                 .map(v -> v.getVerified() == Verified.Y)
                 .orElse(false);
@@ -111,6 +111,9 @@ public class EmailVerificationService {
 
     //인증 유효범위 체크
     public LocalDateTime verifiedTimeCheck(String email, VerifiedType verifiedType){
-        return verifyRepository.findLatestCreatedAtByEmailAndVerifiedTypeAndVerified(email, verifiedType, Verified.Y);
+        return verifyRepository
+                .findTop1ByEmailAndVerifiedTypeAndVerifiedOrderByCreatedAtDesc(email, verifiedType, Verified.Y)
+                .map(EmailVerification::getCreatedAt)
+                .orElse(null); // 없으면 null 반환
     }
 }
