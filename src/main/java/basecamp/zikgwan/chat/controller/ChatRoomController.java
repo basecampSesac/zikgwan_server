@@ -3,7 +3,7 @@ package basecamp.zikgwan.chat.controller;
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
 import basecamp.zikgwan.chat.dto.ChatUserDto;
-import basecamp.zikgwan.chat.dto.NotificationChatRoomDto;
+import basecamp.zikgwan.chat.dto.ChatRoomDetailDto;
 import basecamp.zikgwan.chat.dto.TicketInfoDto;
 import basecamp.zikgwan.chat.dto.UserInfoDto;
 import basecamp.zikgwan.chat.service.ChatService;
@@ -91,8 +91,8 @@ public class ChatRoomController {
      * 채팅방 상세조회
      */
     @GetMapping("/detail/{roomId}")
-    public ResponseEntity<ApiResponse<NotificationChatRoomDto>> getChatRoomDetail(@PathVariable Long roomId) {
-        NotificationChatRoomDto chatRoomDto = chatService.getChatRoomDetail(roomId);
+    public ResponseEntity<ApiResponse<ChatRoomDetailDto>> getChatRoomDetail(@PathVariable Long roomId) {
+        ChatRoomDetailDto chatRoomDto = chatService.getChatRoomDetail(roomId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

@@ -6,7 +6,7 @@ import basecamp.zikgwan.chat.domain.ChatRoomUser;
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
 import basecamp.zikgwan.chat.dto.ChatUserDto;
-import basecamp.zikgwan.chat.dto.NotificationChatRoomDto;
+import basecamp.zikgwan.chat.dto.ChatRoomDetailDto;
 import basecamp.zikgwan.chat.dto.TicketInfoDto;
 import basecamp.zikgwan.chat.dto.TicketRoomCount;
 import basecamp.zikgwan.chat.dto.UserInfoDto;
@@ -104,13 +104,14 @@ public class ChatService {
     }
 
     // 채팅방 상세조회
-    public NotificationChatRoomDto getChatRoomDetail(Long roomId) {
+    public ChatRoomDetailDto getChatRoomDetail(Long roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
-        return NotificationChatRoomDto.builder()
+        return ChatRoomDetailDto.builder()
                 .roomId(chatRoom.getRoomId())
                 .roomName(chatRoom.getRoomName())
+                .userCount(chatRoom.getUserCount())
                 .build();
     }
 
