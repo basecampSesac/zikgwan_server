@@ -196,11 +196,13 @@ public class TicketSaleController {
     // 판매자와 채팅중인 구매자 리스트 조회
     @LoginCheck
     @GetMapping("/buyer")
-    public ResponseEntity<ApiResponse<List<BuyerInfo>>> getAllBuyers(@AuthenticationPrincipal CustomUserPrincipal principal){
+    public ResponseEntity<ApiResponse<List<BuyerInfo>>> getAllBuyers(
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
         List<BuyerInfo> responses = ticketSaleService.getAllBuyers(principal.getUserId());
 
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(responses));
     }
-
-
 }

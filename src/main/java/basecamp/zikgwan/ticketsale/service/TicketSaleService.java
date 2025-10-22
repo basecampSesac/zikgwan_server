@@ -1,7 +1,6 @@
 package basecamp.zikgwan.ticketsale.service;
 
 import basecamp.zikgwan.chat.domain.ChatRoom;
-import basecamp.zikgwan.chat.domain.ChatRoomUser;
 import basecamp.zikgwan.chat.enums.RoomType;
 import basecamp.zikgwan.chat.repository.ChatRoomRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
@@ -22,6 +21,7 @@ import basecamp.zikgwan.user.repository.UserRepository;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -275,7 +275,28 @@ public class TicketSaleService {
     // 판매자와 채팅중인 구매자 리스트 조회
     public List<BuyerInfo> getAllBuyers(Long userId) {
 
+        // 판매자가 참여중인 채팅방 리스트 조회
+        List<ChatRoom> chatRooms = chatRoomRepository.findAllBySellerId(userId);
 
+        // 채팅방 리스트에서 구매자 id를 모두 뽑고 구매자 정보를 매핑
+        if (!chatRooms.isEmpty()) {
+            List<User> buyers = chatRooms.stream()
+                    .map(ChatRoom::getBuyerId)
+                    .map(b -> userRepository.findById(b)
+                            .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다.")))
+                    .toList();
+
+            return buyers.stream()
+                    .map(b -> BuyerInfo.builder()
+                            .userId(b.getUserId())
+                            .nickname(b.getNickname())
+                            .imageUrl(imageService.getImage(ImageType.U, b.getUserId()))
+                            .build())
+                    .toList();
+        }
+
+        // 빈 리스트 반환
+        return Collections.emptyList();
 
     }
 }
