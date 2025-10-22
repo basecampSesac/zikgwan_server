@@ -61,6 +61,7 @@ class ReviewServiceTest {
                 .build();
 
         given(userRepository.findById(reviewer.getUserId())).willReturn(Optional.of(reviewer));
+        given(userRepository.findById(reviewee.getUserId())).willReturn(Optional.of(reviewee));
         given(ticketSaleRepository.findById(ticket.getTsId())).willReturn(Optional.of(ticket));
         given(reviewRepository.findAllByTicketSaleAndSaveState(ticket, SaveState.Y)).willReturn(List.of());
 
@@ -93,7 +94,7 @@ class ReviewServiceTest {
         // when // then
         assertThatThrownBy(() -> reviewService.createReview(reviewer.getUserId(), ticket.getTsId(), requestDto))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("판매중인 거래는 평기할 수 없습니다.");
+                .hasMessage("판매 중인 거래는 평가할 수 없습니다.");
     }
 
     @DisplayName("구매자가 아닌 사용자는 평가할 수 없다.")
