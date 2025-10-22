@@ -74,8 +74,6 @@ public class ChatService {
 
     // 모임의 해당 채팅방 불러오기
     public ChatRoomDto getCommunityChatRoom(Long typeId, Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         ChatRoom chatRoom = chatRoomRepository.findFirstByTypeIdAndType(typeId, RoomType.C)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
@@ -92,9 +90,6 @@ public class ChatService {
 
     // 구매자의 티켓 거래 채팅방 불러오기
     public ChatRoomDto getTicketChatRoom(Long tsId, Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
-
         // 구매자가 참여하고 있는 채팅방 불러옴
         ChatRoom chatRoom = chatRoomRepository.findByTypeIdAndBuyerIdAndType(tsId, userId, RoomType.T)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
@@ -110,7 +105,6 @@ public class ChatService {
 
     // 채팅방 상세조회
     public NotificationChatRoomDto getChatRoomDetail(Long roomId) {
-
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("채팅방이 존재하지 않습니다."));
 
@@ -125,9 +119,6 @@ public class ChatService {
     // 그룹
     @Transactional
     public ChatRoomDto createCommunityRoom(Long communityId, String roomName, Long userId) {
-        // 로그인한 사용자 존재 확인
-        userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
-
         ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.C).typeId(communityId).build();
 
         chatRoomRepository.save(chatRoom);
@@ -139,9 +130,6 @@ public class ChatService {
     // 티켓 채팅방
     @Transactional
     public ChatRoomDto createTicketRoom(Long tsId, String roomName, Long userId) {
-        // 로그인한 사용자 존재 확인
-        userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
-
         TicketSale ticketSale = ticketSaleRepository.findById(tsId)
                 .orElseThrow(() -> new NoSuchElementException("티켓 거래를 찾을 수 없습니다."));
 
