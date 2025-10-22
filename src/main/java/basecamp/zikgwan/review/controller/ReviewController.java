@@ -1,5 +1,6 @@
 package basecamp.zikgwan.review.controller;
 
+import basecamp.zikgwan.common.aop.LoginCheck;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.config.security.CustomUserPrincipal;
 import basecamp.zikgwan.review.dto.ReviewRequestDto;
@@ -27,6 +28,7 @@ public class ReviewController {
     /**
      * 거래 평가
      */
+    @LoginCheck
     @PostMapping("/rating/{tsId}")
     public ResponseEntity<ApiResponse<String>> createReview(@PathVariable Long tsId,
                                                             @AuthenticationPrincipal CustomUserPrincipal principal,

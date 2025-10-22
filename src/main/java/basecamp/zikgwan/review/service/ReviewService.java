@@ -30,7 +30,6 @@ public class ReviewService {
     // 거래 평가 생성
     @Transactional
     public String createReview(Long userId, Long tsId, ReviewRequestDto requestDto) {
-
         User reviewer = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 

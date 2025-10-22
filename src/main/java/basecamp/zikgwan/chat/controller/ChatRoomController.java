@@ -48,6 +48,7 @@ public class ChatRoomController {
     /**
      * 사용자의 모든 채팅방 목록 조회
      */
+    @LoginCheck
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<ChatRoomDto>>> getUserChatRooms(
             @AuthenticationPrincipal CustomUserPrincipal principal) {
@@ -61,6 +62,7 @@ public class ChatRoomController {
     /**
      * 모임 채팅방 상세 조회
      */
+    @LoginCheck
     @GetMapping("/community/{communityId}")
     public ResponseEntity<ApiResponse<ChatRoomDto>> getCommunityChatRoom(@PathVariable Long communityId,
                                                                          @AuthenticationPrincipal CustomUserPrincipal principal) {
@@ -74,6 +76,7 @@ public class ChatRoomController {
     /**
      * 구매자의 티켓 채팅방 상세 조회
      */
+    @LoginCheck
     @GetMapping("/ticket/{tsId}")
     public ResponseEntity<ApiResponse<ChatRoomDto>> getTicketChatRoom(@PathVariable Long tsId,
                                                                       @AuthenticationPrincipal CustomUserPrincipal principal) {
@@ -87,7 +90,6 @@ public class ChatRoomController {
     /**
      * 채팅방 상세조회
      */
-    @LoginCheck
     @GetMapping("/detail/{roomId}")
     public ResponseEntity<ApiResponse<NotificationChatRoomDto>> getChatRoomDetail(@PathVariable Long roomId) {
         NotificationChatRoomDto chatRoomDto = chatService.getChatRoomDetail(roomId);
@@ -113,6 +115,7 @@ public class ChatRoomController {
     /**
      * 모임 채팅방 생성
      */
+    @LoginCheck
     @PostMapping("/community/{communityId}")
     public ResponseEntity<ApiResponse<ChatRoomDto>> createCommunityRoom(@PathVariable Long communityId,
                                                                         @RequestParam String roomName,
@@ -127,6 +130,7 @@ public class ChatRoomController {
     /**
      * 티켓 중고거래 채팅방 생성
      */
+    @LoginCheck
     @PostMapping("/ticket/{tsId}")
     public ResponseEntity<ApiResponse<ChatRoomDto>> createTicketRoom(@PathVariable Long tsId,
                                                                      @RequestParam String roomName,
@@ -141,6 +145,7 @@ public class ChatRoomController {
     /**
      * 채팅방 떠나기 (아예 나감)
      */
+    @LoginCheck
     @DeleteMapping("/{roomId}/leave")
     public ResponseEntity<ApiResponse<String>> leaveRoom(@PathVariable Long roomId,
                                                          @AuthenticationPrincipal CustomUserPrincipal principal) {
@@ -154,6 +159,7 @@ public class ChatRoomController {
     /**
      * 채팅방 들어오기, 채팅방 들어올때마다 호출
      */
+    @LoginCheck
     @PatchMapping("/{roomId}/join")
     public ResponseEntity<ApiResponse<ChatUserDto>> joinRoom(@PathVariable Long roomId,
                                                              @AuthenticationPrincipal CustomUserPrincipal principal) {
@@ -167,6 +173,7 @@ public class ChatRoomController {
     /**
      * 채팅방 나가기, 채팅방 나갈때마다 호출
      */
+    @LoginCheck
     @PatchMapping("/exit")
     public ResponseEntity<ApiResponse<String>> exitRoom(@AuthenticationPrincipal CustomUserPrincipal principal) {
         String message = chatService.exitRoom(principal.getUserId());
@@ -179,6 +186,7 @@ public class ChatRoomController {
     /**
      * 채팅 내용 불러오기
      */
+    @LoginCheck
     @GetMapping("/chat/{roomId}")
     public ResponseEntity<ApiResponse<List<ChatDto>>> getChatMessages(@PathVariable Long roomId,
                                                                       @AuthenticationPrincipal CustomUserPrincipal principal) {

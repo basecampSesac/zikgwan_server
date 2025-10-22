@@ -1,5 +1,6 @@
 package basecamp.zikgwan.notification.controller;
 
+import basecamp.zikgwan.common.aop.LoginCheck;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.config.security.CustomUserPrincipal;
 import basecamp.zikgwan.notification.dto.NotificationResponseDto;
@@ -26,6 +27,7 @@ public class NotificationController {
     /**
      * 해당 사용자의 모든 알림 목록 조회 읽지 않은 알림은 readAt = null
      */
+    @LoginCheck
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<NotificationResponseDto>>> getNotifications(
             @AuthenticationPrincipal CustomUserPrincipal principal) {
@@ -41,6 +43,7 @@ public class NotificationController {
     /**
      * 알림 읽음 처리
      */
+    @LoginCheck
     @PatchMapping("/read/{id}")
     public ResponseEntity<ApiResponse<String>> readNotification(@AuthenticationPrincipal CustomUserPrincipal principal,
                                                                 @PathVariable Long id) {
@@ -55,6 +58,7 @@ public class NotificationController {
     /**
      * 알림 삭제
      */
+    @LoginCheck
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteNotification(
             @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long id) {
@@ -66,6 +70,4 @@ public class NotificationController {
                 .body(ApiResponse.success(message));
 
     }
-
-
 }
