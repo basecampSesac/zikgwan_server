@@ -173,6 +173,7 @@ public class ChatService {
                         .email(u.getEmail())
                         .nickname(u.getNickname())
                         .club(u.getClub())
+                        .imageUrl(imageService.getImage(ImageType.U, u.getUserId()))
                         .build())
                 .toList();
     }
