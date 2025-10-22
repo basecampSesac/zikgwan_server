@@ -25,7 +25,6 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     // 사용자의 모든 알림 조회
-    // TODO 시큐리티 설정 필요
     public List<NotificationResponseDto> getNotifications(Long userId) {
 
         User findUser = userRepository.findById(userId)
