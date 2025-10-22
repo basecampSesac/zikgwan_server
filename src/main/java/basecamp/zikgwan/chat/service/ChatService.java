@@ -120,12 +120,32 @@ public class ChatService {
     // 그룹
     @Transactional
     public ChatRoomDto createCommunityRoom(Long communityId, String roomName, Long userId) {
-        ChatRoom chatRoom = ChatRoom.builder().roomName(roomName).type(RoomType.C).typeId(communityId).build();
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new NoSuchElementException("모임이 존재하지 않습니다."));
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .roomName(roomName)
+                .type(RoomType.C)
+                .typeId(communityId)
+                .build();
 
         chatRoomRepository.save(chatRoom);
 
-        return ChatRoomDto.builder().roomId(chatRoom.getRoomId()).roomName(chatRoom.getRoomName())
-                .userCount(chatRoom.getUserCount()).type(chatRoom.getType()).typeId(chatRoom.getTypeId()).build();
+        // 모임장 자동 입장 처리
+        User leader = community.getUser();
+        if (leader != null) {
+            createChatRoomUserIfAbsent(chatRoom, leader);
+            chatRoom.upUserCount();
+            chatRoomRepository.save(chatRoom);
+        }
+
+        return ChatRoomDto.builder()
+                .roomId(chatRoom.getRoomId())
+                .roomName(chatRoom.getRoomName())
+                .userCount(chatRoom.getUserCount())
+                .type(chatRoom.getType())
+                .typeId(chatRoom.getTypeId())
+                .build();
     }
 
     // 티켓 채팅방
