@@ -172,4 +172,20 @@ public class User extends BaseEntity {
         this.saveState = saveState;
         this.provider = provider;
     }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void setClub(String club) {
+        this.club = club;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setSaveState(SaveState saveState) {
+        this.saveState = saveState;
+    }
 }
