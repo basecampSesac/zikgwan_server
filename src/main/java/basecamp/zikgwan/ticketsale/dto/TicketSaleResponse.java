@@ -27,13 +27,14 @@ public class TicketSaleResponse {
     private Seat adjacentSeat; // 연석 여부
     private String nickname; // 티켓 거래글 작성자 닉네임
     private Double rating; // 티켓 거래글 작성자 평점
+    private String profileImageUrl; // 판매자 프로필 이미지
     private TicketState state; // 티켓 거래 상태 여부
     private LocalDateTime createdAt; // 티켓 거래글 작성일자
     private LocalDateTime updatedAt; // 티켓 거래글 수정일자
     private String imageUrl;
     private SaveState saveState;
 
-    public static TicketSaleResponse from(TicketSale ticketSale, String imageUrl, Double rating) {
+    public static TicketSaleResponse from(TicketSale ticketSale, String imageUrl, Double rating, String profileImageUrl) {
         return TicketSaleResponse.builder()
                 .tsId(ticketSale.getTsId())
                 .title(ticketSale.getTitle())
@@ -49,6 +50,7 @@ public class TicketSaleResponse {
                 .state(ticketSale.getState())
                 .imageUrl(imageUrl)
                 .rating(rating)
+                .profileImageUrl(profileImageUrl)
                 .createdAt(ticketSale.getCreatedAt())
                 .saveState(ticketSale.getSaveState())
                 .build();

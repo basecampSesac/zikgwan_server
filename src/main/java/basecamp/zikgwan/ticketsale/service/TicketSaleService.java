@@ -69,17 +69,18 @@ public class TicketSaleService {
                 .state(TicketState.ING)
                 .build();
 
-        TicketSale savedticketSale = ticketSaleRepository.save(ticketSale);
+        TicketSale savedTicketSale = ticketSaleRepository.save(ticketSale);
 
         String imageUrl = null;
         if (imageFile != null && !imageFile.isEmpty()) {
-            imageService.uploadImage(ImageType.T, savedticketSale.getTsId(), imageFile, null);
-            imageUrl = imageService.getImage(ImageType.T, savedticketSale.getTsId());
+            imageService.uploadImage(ImageType.T, savedTicketSale.getTsId(), imageFile, null);
+            imageUrl = imageService.getImage(ImageType.T, savedTicketSale.getTsId());
             System.out.println("imageUrl : " + imageUrl);
         }
-        log.info("티켓 등록 확인 : {}", savedticketSale.getTitle());
+        log.info("티켓 등록 확인 : {}", savedTicketSale.getTitle());
 
-        return TicketSaleResponse.from(savedticketSale, imageUrl, savedticketSale.getSellerId().getAverageRating());
+        return TicketSaleResponse.from(savedTicketSale, imageUrl, savedTicketSale.getSellerId().getAverageRating(),
+                imageService.getImage(ImageType.U, savedTicketSale.getSellerId().getUserId()));
     }
 
     // 티켓 판매글 수정
@@ -108,7 +109,8 @@ public class TicketSaleService {
             System.out.println("imageUrl : " + imageUrl);
         }
 
-        return TicketSaleResponse.from(savedTicketSale, imageUrl, savedTicketSale.getSellerId().getAverageRating());
+        return TicketSaleResponse.from(savedTicketSale, imageUrl, savedTicketSale.getSellerId().getAverageRating(),
+                imageService.getImage(ImageType.U, savedTicketSale.getSellerId().getUserId()));
     }
 
     // 티켓 판매글 삭제 - (soft delete)
@@ -151,7 +153,8 @@ public class TicketSaleService {
         imageUrl = imageService.getImage(ImageType.T, tsId);
         System.out.println("티켓 판매글 조회 imageUrl : " + imageUrl);
 
-        return TicketSaleResponse.from(ticketSale, imageUrl, ticketSale.getSellerId().getAverageRating());
+        return TicketSaleResponse.from(ticketSale, imageUrl, ticketSale.getSellerId().getAverageRating(),
+                imageService.getImage(ImageType.U, ticketSale.getSellerId().getUserId()));
     }
 
     // 티켓 판매글 전체 조회
@@ -162,7 +165,8 @@ public class TicketSaleService {
         List<TicketSaleResponse> content = ticketSales.stream()
                 .map(t -> {
                     String imageUrl = imageService.getImage(ImageType.T, t.getTsId());
-                    return TicketSaleResponse.from(t, imageUrl, t.getSellerId().getAverageRating());
+                    return TicketSaleResponse.from(t, imageUrl, t.getSellerId().getAverageRating(),
+                            imageService.getImage(ImageType.U, t.getSellerId().getUserId()));
                 })
                 .collect(Collectors.toList());
 
@@ -218,7 +222,8 @@ public class TicketSaleService {
         return ticketSales.stream()
                 .map(t -> {
                     String imageUrl = imageService.getImage(ImageType.T, t.getTsId());
-                    return TicketSaleResponse.from(t, imageUrl, t.getSellerId().getAverageRating());
+                    return TicketSaleResponse.from(t, imageUrl, t.getSellerId().getAverageRating(),
+                            imageService.getImage(ImageType.U, t.getSellerId().getUserId()));
                 })
                 .collect(Collectors.toList());
     }
