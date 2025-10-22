@@ -1,7 +1,9 @@
 package basecamp.zikgwan.ticketsale.controller;
 
+import basecamp.zikgwan.common.aop.LoginCheck;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.config.security.CustomUserPrincipal;
+import basecamp.zikgwan.ticketsale.dto.BuyerInfo;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleCompleted;
 import basecamp.zikgwan.ticketsale.dto.TicketSalePageResponse;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleRequest;
@@ -188,6 +190,15 @@ public class TicketSaleController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(responses));
+
+    }
+
+    // 판매자와 채팅중인 구매자 리스트 조회
+    @LoginCheck
+    @GetMapping("/buyer")
+    public ResponseEntity<ApiResponse<List<BuyerInfo>>> getAllBuyers(@AuthenticationPrincipal CustomUserPrincipal principal){
+
+        List<BuyerInfo> responses = ticketSaleService.getAllBuyers(principal.getUserId());
 
     }
 
