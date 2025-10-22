@@ -14,20 +14,11 @@ import org.springframework.stereotype.Repository;
 public interface EmailVerificationRepository extends JpaRepository<EmailVerification, Long> {
     Optional<EmailVerification> findTopByEmailOrderByCreatedAtDesc(String email);
 
-    Optional<EmailVerification> findFirstByEmailAndVerifiedTypeOrderByCreatedAtDesc(String email,
+    Optional<EmailVerification> findTop1ByEmailAndVerifiedTypeOrderByCreatedAtDesc(String email,
                                                                                     VerifiedType verifiedType);
 
-    // 이메일 + verifiedType 조건 + verified = Y 인 가장 최근 데이터 조회
-    @Query("SELECT e.createdAt " +
-            "FROM EmailVerification e " +
-            "WHERE e.email = :email " +
-            "AND e.verifiedType = :verifiedType " +
-            "AND e.verified = :verified " +
-            "ORDER BY e.createdAt DESC")
-    LocalDateTime findLatestCreatedAtByEmailAndVerifiedTypeAndVerified(
-            @Param("email") String email,
-            @Param("verifiedType") VerifiedType verifiedType,
-            @Param("verified") Verified verified
+    Optional<EmailVerification> findTop1ByEmailAndVerifiedTypeAndVerifiedOrderByCreatedAtDesc(
+            String email, VerifiedType verifiedType, Verified verified
     );
 
 }

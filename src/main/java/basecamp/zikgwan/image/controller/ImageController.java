@@ -1,6 +1,7 @@
 package basecamp.zikgwan.image.controller;
 
 
+import basecamp.zikgwan.common.aop.LoginCheck;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.config.security.CustomUserPrincipal;
 import basecamp.zikgwan.image.Image;
@@ -37,6 +38,7 @@ public class ImageController {
      * @return
      * @throws Exception
      */
+    @LoginCheck
     @PostMapping("/{type}")
     public ResponseEntity<ApiResponse<Image>> uploadImage(
             @PathVariable String type,
@@ -44,9 +46,6 @@ public class ImageController {
             @RequestParam(required = false) Long refId, // 모임/티켓 등 연관 ID
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) throws Exception {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("로그인 정보가 없습니다."));
-        }
 
         ImageType imageType;
         try {
@@ -95,15 +94,12 @@ public class ImageController {
      * @param principal
      * @return
      */
+    @LoginCheck
     @DeleteMapping("/delete/{imageId}")
     public ResponseEntity<ApiResponse<Void>> deleteImage(
             @PathVariable Long imageId,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("로그인 정보가 없습니다."));
-        }
-
         Long userId = imageService.getOwnerIdByImageId(imageId);
         if (!userId.equals(principal.getUserId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail("권한이 없습니다."));

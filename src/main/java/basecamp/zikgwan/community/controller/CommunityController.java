@@ -1,5 +1,6 @@
 package basecamp.zikgwan.community.controller;
 
+import basecamp.zikgwan.common.aop.LoginCheck;
 import basecamp.zikgwan.common.dto.ApiResponse;
 import basecamp.zikgwan.community.dto.CommunityPageResponse;
 import basecamp.zikgwan.community.dto.CommunityRequest;
@@ -45,6 +46,7 @@ public class CommunityController {
      * @return
      * @throws Exception
      */
+    @LoginCheck
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CommunityResponse>> registerCommunity(
             @Valid @RequestPart("data") CommunityRequest request,
@@ -52,13 +54,7 @@ public class CommunityController {
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) throws Exception {
 
-        System.out.println("getTitle " + request.getTitle());
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
-
+        //System.out.println("getTitle " + request.getTitle());
         CommunityResponse response = communityService.registerCommunity(principal.getUserId(), request, imageFile);
 
         return ResponseEntity
@@ -76,6 +72,7 @@ public class CommunityController {
      * @return
      * @throws Exception
      */
+    @LoginCheck
     @PutMapping(value = "/{communityId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CommunityResponse>> updateCommunity(
             @PathVariable Long communityId,
@@ -83,10 +80,6 @@ public class CommunityController {
             @RequestPart("image") MultipartFile imageFile,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) throws Exception {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
 
         Long userId = principal.getUserId();
         CommunityResponse response = communityService.updateCommunity(userId, communityId, request, imageFile);
@@ -101,15 +94,12 @@ public class CommunityController {
      * @param principal
      * @return
      */
+    @LoginCheck
     @DeleteMapping("/{communityId}")
     public ResponseEntity<ApiResponse<String>> deleteCommunity(
             @PathVariable Long communityId,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
 
         communityService.deleteCommunity(communityId, principal.getUserId());
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("모임이 삭제되었습니다."));
@@ -122,15 +112,12 @@ public class CommunityController {
      * @param principal
      * @return
      */
+    @LoginCheck
     @PutMapping("/state/{communityId}")
     public ResponseEntity<ApiResponse<String>> toggleCommunityState(
             @PathVariable Long communityId,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
 
         CommunityState newState = communityService.updateCommunityState(communityId, principal.getUserId());
         return ResponseEntity.status(HttpStatus.OK)
