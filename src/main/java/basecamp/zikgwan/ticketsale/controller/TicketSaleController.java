@@ -41,17 +41,13 @@ public class TicketSaleController {
     private final TicketSaleService ticketSaleService;
 
     // 티켓 판매글 등록
+    @LoginCheck
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<TicketSaleResponse>> createTicketSale(
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestPart(value = "image", required = false) MultipartFile imageFile,
             @RequestPart("ticketSaleRequest") TicketSaleRequest ticketSaleRequest)
             throws Exception {
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
 
         TicketSaleResponse ticketSaleResponse = ticketSaleService.createTicketSale(principal.getUserId(),
                 ticketSaleRequest, imageFile);
@@ -62,6 +58,7 @@ public class TicketSaleController {
     }
 
     // 티켓 판매글 수정
+    @LoginCheck
     @PutMapping(value = "/{tsId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<TicketSaleResponse>> updateTicketSale(
             @PathVariable Long tsId,
@@ -69,11 +66,6 @@ public class TicketSaleController {
             @RequestPart("ticketSaleRequest") TicketSaleRequest ticketSaleRequest,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) throws Exception {
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
 
         Long userId = principal.getUserId();
         TicketSaleResponse ticketSaleResponse = ticketSaleService.updateTicketSale(userId, tsId, ticketSaleRequest,
@@ -85,15 +77,11 @@ public class TicketSaleController {
     }
 
     //티켓 판매글 삭제
+    @LoginCheck
     @DeleteMapping("/{tsId}")
     public ResponseEntity<ApiResponse<String>> deleteTicketSale(
             @PathVariable Long tsId,
             @AuthenticationPrincipal CustomUserPrincipal principal) throws IllegalAccessException {
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
 
         ticketSaleService.deleteTicketSale(tsId, principal.getUserId());
         return ResponseEntity
@@ -145,15 +133,12 @@ public class TicketSaleController {
     }
 
     //티켓 판매글 상태 변경
+    @LoginCheck
     @PutMapping("/state/{tsId}")
     public ResponseEntity<ApiResponse<String>> toggleTicketSaleState(
             @PathVariable Long tsId,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
 
         TicketState ticketState = ticketSaleService.updateTicketState(tsId, principal.getUserId());
         return ResponseEntity.status(HttpStatus.OK)
@@ -161,16 +146,12 @@ public class TicketSaleController {
     }
 
     // 티켓 구매자 지정
+    @LoginCheck
     @PutMapping("/select/{tsId}")
     public ResponseEntity<ApiResponse<String>> selectTicketSaleBuyer(
             @PathVariable Long tsId,
             @RequestParam("buyerId") Long buyerId,
             @AuthenticationPrincipal CustomUserPrincipal principal) throws IllegalAccessException {
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("로그인이 필요합니다."));
-        }
 
         ticketSaleService.selectTicketSaleBuyer(tsId, principal.getUserId(), buyerId);
 
