@@ -26,8 +26,9 @@ public class TicketSaleCompleted {
     private Long buyerId;
     private LocalDateTime updatedAt;
     private Double rating;          // 리뷰 점수
+    private String profileImageUrl;
 
-    public static TicketSaleCompleted from(TicketSale ticketSale) {
+    public static TicketSaleCompleted from(TicketSale ticketSale, String profileImageUrl) {
 
         Review review = ticketSale.getReview();
 
@@ -45,6 +46,7 @@ public class TicketSaleCompleted {
                 .buyerId(ticketSale.getBuyerId())
                 .updatedAt(ticketSale.getUpdatedAt())
                 .rating(review == null ? null : review.getRating())
+                .profileImageUrl(profileImageUrl)
                 .build();
     }
 }
