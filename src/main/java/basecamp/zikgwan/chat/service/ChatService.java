@@ -441,6 +441,8 @@ public class ChatService {
                             .saveState(s.getSaveState())
                             .chatRoomCount(c.getChatRoomCount())
                             .imageUrl(imageUrl)
+                            .nickname(s.getSellerId().getNickname())
+                            .rating(s.getSellerId().getAverageRating())
                             .build();
                 })
                 .filter(Objects::nonNull)
