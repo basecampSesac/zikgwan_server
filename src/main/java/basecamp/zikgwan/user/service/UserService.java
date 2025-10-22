@@ -142,10 +142,12 @@ public class UserService {
             newEncodedPassword = chkUser.getPassword();
         }
 
-        User updateuser = User.builder().club(user.getClub()).nickname(updateNickname).password(newEncodedPassword)
-                .saveState(SaveState.Y).email(chkUser.getEmail()).userId(id).provider(chkUser.getProvider()).build();
+        chkUser.setNickname(updateNickname);
+        chkUser.setPassword(newEncodedPassword);
+        chkUser.setClub(user.getClub());
+        chkUser.setSaveState(SaveState.Y);
 
-        return userRepository.save(updateuser);
+        return chkUser;
 
     }
 
@@ -321,17 +323,10 @@ public class UserService {
         String newEncodedPassword = passwordEncoder.encode(newPassword);
         System.out.println("newEncodedPassword : " + newEncodedPassword);
 
-        User updateuser = User.builder()
-                .club(user.getClub())
-                .nickname(user.getNickname())
-                .password(newEncodedPassword)
-                .saveState(SaveState.Y)
-                .email(user.getEmail())
-                .userId(user.getUserId())
-                .provider(user.getProvider()).build();
+        user.setPassword(newEncodedPassword);
+        user.setSaveState(SaveState.Y);
 
-        return userRepository.save(updateuser);
-
+        return user;
     }
 
 }

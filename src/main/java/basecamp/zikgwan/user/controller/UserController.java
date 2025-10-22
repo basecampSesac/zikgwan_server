@@ -169,6 +169,10 @@ public class UserController {
             refreshCookie.setAttribute("SameSite", "None"); // 크로스 도메인 쿠키 허용
             response.addCookie(refreshCookie);
 
+            String imageUrl = null;
+            imageUrl = imageService.getImage(ImageType.U, user.getUserId());
+            //System.out.println("사용자 정보 imageUrl : " + imageUrl);
+
             // Access Token과 사용자 정보는 본문으로 반환
             final UserResponseDto responseUserDTO = UserResponseDto.builder()
                     .email(user.getEmail())
@@ -176,6 +180,7 @@ public class UserController {
                     .nickname(user.getNickname())
                     .provider(user.getProvider())
                     .club(user.getClub())
+                    .imageUrl(imageUrl)
                     .token(token) // 토큰
                     .build();
 
