@@ -12,4 +12,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     // 삭제 여부를 포함하여 User로 모든 알림 조회
     List<Notification> findAllByReceiverAndSaveState(User receiver, SaveState saveState);
+
+    List<Notification> findAllByRoomId(Long roomId);
+
+    List<Notification> findAllByRoomIdIn(List<Long> roomIds);
 }

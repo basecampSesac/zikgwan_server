@@ -7,6 +7,8 @@ import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.image.enums.ImageType;
 import basecamp.zikgwan.image.service.ImageService;
+import basecamp.zikgwan.notification.Notification;
+import basecamp.zikgwan.notification.repository.NotificationRepository;
 import basecamp.zikgwan.ticketsale.TicketSale;
 import basecamp.zikgwan.ticketsale.dto.BuyerInfo;
 import basecamp.zikgwan.ticketsale.dto.TicketSaleCompleted;
@@ -43,6 +45,7 @@ public class TicketSaleService {
     private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomUserRepository chatRoomUserRepository;
+    private final NotificationRepository notificationRepository;
     private final ImageService imageService;
 
     // 티켓 판매글 등록
@@ -123,24 +126,36 @@ public class TicketSaleService {
             throw new IllegalAccessException("게시글은 본인만 삭제할 수 있습니다.");
         }
 
-        // 연관된 채팅방 모두 찾음
-        List<ChatRoom> chatRooms = chatRoomRepository.findAllByTypeIdAndType(tsId, RoomType.T);
-
+        // 티켓 Soft Delete
         ticketSale.updateSaveState(SaveState.N);
 
-        // 채팅방이 존재하면 모두 SaveState를 N으로 변경
-        if (!chatRooms.isEmpty()) {
-            chatRooms.forEach(c -> c.updateSaveState(SaveState.N));
-
-            List<ChatRoom> deletedChatRooms = chatRoomRepository.saveAll(chatRooms);
-
-            // 티켓 채팅방에 참여한 사용자 목록 전부 hard delete
-            chatRoomUserRepository.deleteAllByChatRoomIn(deletedChatRooms);
-
+        // 연관된 채팅방 전체 조회
+        List<ChatRoom> chatRooms = chatRoomRepository.findAllByTypeIdAndType(tsId, RoomType.T);
+        if (chatRooms.isEmpty()) {
+            ticketSaleRepository.save(ticketSale);
+            return;
         }
 
-        ticketSaleRepository.save(ticketSale);
+        // 채팅방 Soft Delete
+        chatRooms.forEach(c -> c.updateSaveState(SaveState.N));
+        chatRoomRepository.saveAll(chatRooms);
 
+        // 채팅방 알림 Soft Delete
+        List<Long> roomIds = chatRooms.stream()
+                .map(ChatRoom::getRoomId)
+                .toList();
+
+        List<Notification> notifications = notificationRepository.findAllByRoomIdIn(roomIds);
+        if (!notifications.isEmpty()) {
+            notifications.forEach(n -> n.updateSaveState(SaveState.N));
+            notificationRepository.saveAll(notifications);
+        }
+
+        // 채팅방 유저 Hard Delete
+        chatRoomUserRepository.deleteAllByChatRoomIn(chatRooms);
+
+        // 티켓 저장
+        ticketSaleRepository.save(ticketSale);
     }
 
     // 티켓 판매글 상세 조회
