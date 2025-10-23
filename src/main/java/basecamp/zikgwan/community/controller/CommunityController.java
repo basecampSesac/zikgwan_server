@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -171,14 +172,17 @@ public class CommunityController {
      * @return 필터링되어 검색된 모임 목록
      */
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<CommunityResponse>>> searchCommunitiesByTitle(
+    public ResponseEntity<ApiResponse<Page<CommunityResponse>>> searchCommunitiesByTitle(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String team,
             @RequestParam(required = false) String stadium,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "RECENT") String sortType
     ) {
-        List<CommunityResponse> response = communityService.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
-                team, stadium, date);
+        Page<CommunityResponse> response = communityService.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+                team, stadium, date, page, size, SortType.valueOf(sortType));
 
         return ResponseEntity
                 .status(HttpStatus.OK)

@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -201,11 +202,20 @@ public class CommunityService {
     }
     // 제목, 모임 구단, 구장, 경기 날짜를 선택 입력으로 필터링하여 조회
 
-    public List<CommunityResponse> searchCommunitiesByTitleAndTeamAndStadiumAndDate(String title, String team,
+    public Page<CommunityResponse> searchCommunitiesByTitleAndTeamAndStadiumAndDate(String title, String team,
                                                                                     String stadium,
-                                                                                    LocalDate date) {
+                                                                                    LocalDate date, int page,
+                                                                                    int size, SortType sortType) {
 
-        List<Community> communities;
+        Sort sort = Sort.by("createdAt").descending(); // 기본 최신순
+        if (SortType.LEAST.equals(sortType)) {
+            sort = Sort.by("memberCount").ascending();
+        } else if (SortType.MOST.equals(sortType)) {
+            sort = Sort.by("memberCount").descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Community> communities;
 
         // date null 체크
         if (date != null) {
@@ -213,19 +223,18 @@ public class CommunityService {
 
             communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
                     team,
-                    stadium, datetime, datetime.plusDays(1), SaveState.Y);
+                    stadium, datetime, datetime.plusDays(1), SaveState.Y, pageable);
         } else {
             communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
                     team,
-                    stadium, null, null, SaveState.Y);
+                    stadium, null, null, SaveState.Y, pageable);
         }
 
-        return communities.stream()
+        return communities
                 .map(c -> {
                     String imageUrl = imageService.getImage(ImageType.C, c.getCommunityId());
                     return CommunityResponse.from(c, imageUrl);
-                })
-                .collect(Collectors.toList());
+                });
     }
 
     // 정렬 조건 확인 및 정렬

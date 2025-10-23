@@ -31,13 +31,14 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
             "     OR LOWER(c.away) LIKE LOWER(CONCAT('%', :team, '%'))) " +
             "AND (:stadium IS NULL OR c.stadium = :stadium) " +
             "AND (:date IS NULL OR (c.date >= :date AND c.date < :datePlusOne))")
-    List<Community> searchCommunitiesByTitleAndTeamAndStadiumAndDate(
+    Page<Community> searchCommunitiesByTitleAndTeamAndStadiumAndDate(
             @Param("title") String title,
             @Param("team") String team,
             @Param("stadium") String stadium,
             @Param("date") LocalDateTime date,
             @Param("datePlusOne") LocalDateTime datePlusOne,
-            @Param("saveState") SaveState saveState);
+            @Param("saveState") SaveState saveState,
+            Pageable pageable);
 
     // 모임 마감 직전인 모임 조회
     @Query("""
