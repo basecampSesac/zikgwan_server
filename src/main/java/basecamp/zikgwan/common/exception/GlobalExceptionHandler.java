@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
         String msg = e.getMessage();
         if (msg != null && msg.startsWith("SOCIAL_LOGIN_ERROR")) {
             String cleanMessage = msg.replaceFirst("SOCIAL_LOGIN_ERROR \\s*", "");
-            String redirectUrl = "http://localhost:5174/login?error="
+            String redirectUrl = "http://localhost:5173/login?error="
                     + URLEncoder.encode(cleanMessage, StandardCharsets.UTF_8);
             HttpHeaders headers = new HttpHeaders();
             headers.add("Location", redirectUrl);
