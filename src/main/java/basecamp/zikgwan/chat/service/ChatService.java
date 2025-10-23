@@ -4,9 +4,9 @@ import basecamp.zikgwan.chat.domain.Chat;
 import basecamp.zikgwan.chat.domain.ChatRoom;
 import basecamp.zikgwan.chat.domain.ChatRoomUser;
 import basecamp.zikgwan.chat.dto.ChatDto;
+import basecamp.zikgwan.chat.dto.ChatRoomDetailDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
 import basecamp.zikgwan.chat.dto.ChatUserDto;
-import basecamp.zikgwan.chat.dto.ChatRoomDetailDto;
 import basecamp.zikgwan.chat.dto.TicketInfoDto;
 import basecamp.zikgwan.chat.dto.TicketRoomCount;
 import basecamp.zikgwan.chat.dto.UserInfoDto;
@@ -16,6 +16,7 @@ import basecamp.zikgwan.chat.repository.ChatRoomRepository;
 import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
 import basecamp.zikgwan.common.enums.SaveState;
 import basecamp.zikgwan.community.Community;
+import basecamp.zikgwan.community.enums.CommunityState;
 import basecamp.zikgwan.community.repository.CommunityRepository;
 import basecamp.zikgwan.image.enums.ImageType;
 import basecamp.zikgwan.image.service.ImageService;
@@ -291,6 +292,7 @@ public class ChatService {
             // 인원 꽉 찼는지 확인 후 상태 업데이트
             if (chatRoom.getUserCount() < community.getMemberCount()) {
                 community.updateIsFull(false);
+                community.setState(CommunityState.ING);
                 communityRepository.save(community);
             }
         }
@@ -466,15 +468,19 @@ public class ChatService {
         // 인원 꽉 찼는지 확인 후 상태 업데이트
         if (chatRoom.getUserCount() >= community.getMemberCount()) {
             community.updateIsFull(true);
-            communityRepository.save(community);
+            community.setState(CommunityState.END);
         }
 
         chatRoomRepository.save(chatRoom);
+        communityRepository.save(community);
+
+        // 사용자 정보 갱신
         user.updateCurrentRoomId(chatRoom.getRoomId());
         userRepository.save(user);
 
         log.info("[모임 채팅방] {} 입장 완료. 현재 인원: {}", user.getNickname(), chatRoom.getUserCount());
     }
+
 
     // 티켓 거래 채팅방 입장 처리
     @Transactional
