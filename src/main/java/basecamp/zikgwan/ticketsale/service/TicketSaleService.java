@@ -30,7 +30,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -215,32 +217,32 @@ public class TicketSaleService {
     }
 
     // 제목, 모임 구단, 구장, 경기 날짜를 선택 입력으로 필터링하여 조회
-    public List<TicketSaleResponse> searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(String title, String team,
+    public Page<TicketSaleResponse> searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(String title, String team,
                                                                                         String stadium,
-                                                                                        LocalDate gameDay) {
+                                                                                        LocalDate gameDay, int page,
+                                                                                        int size, SortType sortType) {
 
-        List<TicketSale> ticketSales;
-
-        // date null 체크
-        if (gameDay != null) {
-            LocalDateTime datetime = gameDay.atStartOfDay();
-
-            ticketSales = ticketSaleRepository.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(title,
-                    team,
-                    stadium, datetime, datetime.plusDays(1), SaveState.Y);
-        } else {
-            ticketSales = ticketSaleRepository.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(title,
-                    team,
-                    stadium, null, null, SaveState.Y);
+        Sort sort = Sort.by("createdAt").descending(); // 기본 최신순
+        if (SortType.LOW.equals(sortType)) {
+            sort = Sort.by("price").ascending();
+        } else if (SortType.HIGH.equals(sortType)) {
+            sort = Sort.by("price").descending();
         }
 
-        return ticketSales.stream()
-                .map(t -> {
-                    String imageUrl = imageService.getImage(ImageType.T, t.getTsId());
-                    return TicketSaleResponse.from(t, imageUrl, t.getSellerId().getAverageRating(),
-                            imageService.getImage(ImageType.U, t.getSellerId().getUserId()));
-                })
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        LocalDateTime start = (gameDay != null) ? gameDay.atStartOfDay() : null;
+        LocalDateTime end = (gameDay != null) ? start.plusDays(1) : null;
+
+        Page<TicketSale> ticketSales = ticketSaleRepository.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(
+                title, team, stadium, start, end, SaveState.Y, pageable
+        );
+
+        return ticketSales.map(t -> {
+            String imageUrl = imageService.getImage(ImageType.T, t.getTsId());
+            return TicketSaleResponse.from(t, imageUrl, t.getSellerId().getAverageRating(),
+                    imageService.getImage(ImageType.U, t.getSellerId().getUserId()));
+        });
     }
 
     // 티켓 판매글 상태 변경 (ING ↔ END)

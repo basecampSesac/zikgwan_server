@@ -31,13 +31,14 @@ public interface TicketSaleRepository extends JpaRepository<TicketSale, Long> {
             "OR LOWER(t.away) LIKE LOWER(CONCAT('%', :team, '%'))) " +
             "AND (:stadium IS NULL OR t.stadium = :stadium) " +
             "AND (:gameDay IS NULL OR (t.gameDay >= :gameDay AND t.gameDay < :datePlusOne))")
-    List<TicketSale> searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(
+    Page<TicketSale> searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(
             @Param("title") String title,
             @Param("team") String team,
             @Param("stadium") String stadium,
             @Param("gameDay") LocalDateTime gameDay,
             @Param("datePlusOne") LocalDateTime datePlusOne,
-            @Param("saveState") SaveState saveState);
+            @Param("saveState") SaveState saveState,
+            Pageable pageable);
 
     // 거래 완료된 판매자 or 구매자 거래 조회
     @Query("""

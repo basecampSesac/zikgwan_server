@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -116,15 +117,18 @@ public class TicketSaleController {
 
     // 티켓 판매글 조건 검색 필터
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<TicketSaleResponse>>> searchTicketSalesByTitle(
+    public ResponseEntity<ApiResponse<Page<TicketSaleResponse>>> searchTicketSalesByTitle(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String team,
             @RequestParam(required = false) String stadium,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate gameDay
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate gameDay,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "RECENT") String sortType
     ) {
-        List<TicketSaleResponse> ticketSaleResponse = ticketSaleService.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(
+        Page<TicketSaleResponse> ticketSaleResponse = ticketSaleService.searchTicketSalesByTitleAndTeamAndStadiumAndGameDay(
                 title,
-                team, stadium, gameDay);
+                team, stadium, gameDay, page, size, SortType.valueOf(sortType));
 
         return ResponseEntity
                 .status(HttpStatus.OK)
