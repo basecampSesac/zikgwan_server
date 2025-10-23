@@ -15,6 +15,8 @@ import basecamp.zikgwan.community.enums.SortType;
 import basecamp.zikgwan.community.repository.CommunityRepository;
 import basecamp.zikgwan.image.enums.ImageType;
 import basecamp.zikgwan.image.service.ImageService;
+import basecamp.zikgwan.notification.Notification;
+import basecamp.zikgwan.notification.repository.NotificationRepository;
 import basecamp.zikgwan.user.domain.User;
 import basecamp.zikgwan.user.repository.UserRepository;
 import java.io.IOException;
@@ -39,6 +41,7 @@ public class CommunityService {
     private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomUserRepository chatRoomUserRepository;
+    private final NotificationRepository notificationRepository;
     private final ImageService imageService;
 
 
@@ -119,7 +122,15 @@ public class CommunityService {
         ChatRoom chatRoom = chatRoomRepository.findFirstByTypeIdAndType(communityId, RoomType.C)
                 .orElseThrow(() -> new NoSuchElementException("채팅방을 찾을 수 없습니다."));
 
+        List<Notification> notifications = notificationRepository.findAllByRoomId(chatRoom.getRoomId());
+
         List<ChatRoomUser> chatRoomUsers = chatRoomUserRepository.findAllByChatRoom(chatRoom);
+
+        // 채팅방에 대한 알림도 soft delete
+        if (!notifications.isEmpty()) {
+            notifications.forEach(n -> n.updateSaveState(SaveState.N));
+            notificationRepository.saveAll(notifications);
+        }
 
         // 채팅 참여 유저는 hard delete
         if (!chatRoomUsers.isEmpty()) {
