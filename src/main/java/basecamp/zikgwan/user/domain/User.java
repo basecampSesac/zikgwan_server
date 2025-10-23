@@ -154,9 +154,13 @@ public class User extends BaseEntity {
         this.currentRoomId = currentRoomId;
     }
 
-    // 평점 업데이트용
+    // 평점 업데이트용 (소수점 둘째 자리까지 반올림)
     public void updateAverageRating(Double averageRating) {
-        this.averageRating = averageRating;
+        if (averageRating != null) {
+            this.averageRating = Math.round(averageRating * 100) / 100.0;
+        } else {
+            this.averageRating = 0.0;
+        }
     }
 
     @Builder
