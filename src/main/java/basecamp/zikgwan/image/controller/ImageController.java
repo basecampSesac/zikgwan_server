@@ -82,8 +82,14 @@ public class ImageController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail("이미지를 찾을 수 없습니다."));
         }
 
-        // 브라우저 접근 URL
-        String imageUrl = "/images/" + path;
+        // 로컬바일 방식의  브라우저 접근 URL
+        //String imageUrl = "/images/" + path;
+
+
+        //AWS S3스토리지용 URL
+        String imageUrl = path;
+        System.out.println(imageUrl);
+
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(imageUrl));
     }
 

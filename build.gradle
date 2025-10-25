@@ -64,6 +64,11 @@ dependencies {
 
     //이메일 발송을 위한 설정
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    //AWS S3 스토리지 이용
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'software.amazon.awssdk:s3:2.25.40'
+    implementation 'software.amazon.awssdk:auth:2.25.40'
 }
 
 tasks.named('test') {
