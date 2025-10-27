@@ -38,12 +38,7 @@ public class SocialLoginService {
                 nickname = nickname.trim() + code;
             }
             //신규회원 가입
-            user = User.builder()
-                    .email(email)
-                    .nickname(nickname)
-                    .provider(provider)
-                    .saveState(SaveState.Y)
-                    .build();
+            user = User.builder().email(email).nickname(nickname).provider(provider).saveState(SaveState.Y).build();
             user = userRepository.save(user);
         } else {
             existingProvider = user.getProvider();
@@ -73,15 +68,14 @@ public class SocialLoginService {
         String refreshToken = tokenProvider.createRefreshToken(user, expiryDate);
 
         Token tokenEntity = Token.builder().expiryDate(LocalDateTime.now().plusDays(7)).refreshToken(refreshToken)
-                .user(user).build();
+                .accessToken(accessToken).user(user).build();
 
         userService.refreshTokenSave(tokenEntity);
 
         final UserResponseDto responseUserDTO = UserResponseDto.builder().email(user.getEmail())
                 .userId(user.getUserId()).nickname(user.getNickname()).token(accessToken) // 토큰 설정
                 .refreshToken(refreshToken) // 리프레쉬토큰
-                .club(user.getClub())
-                .build();
+                .club(user.getClub()).build();
 
         return responseUserDTO;
     }

@@ -31,6 +31,9 @@ public class Token extends BaseEntity {
     @Column(name = "refresh_token", nullable = false)
     private String refreshToken;
 
+    @Column(name = "access_token", nullable = false)
+    private String accessToken;
+
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
 
@@ -40,9 +43,10 @@ public class Token extends BaseEntity {
     private User user;
 
     @Builder
-    private Token(String refreshToken, LocalDateTime expiryDate, User user) {
+    private Token(String refreshToken, String accessToken,LocalDateTime expiryDate, User user) {
         this.refreshToken = refreshToken;
         this.expiryDate = expiryDate;
+        this.accessToken= accessToken;
         this.user = user;
     }
 

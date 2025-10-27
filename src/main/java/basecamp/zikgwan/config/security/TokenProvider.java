@@ -27,8 +27,8 @@ public class TokenProvider {
 
     //create() : JWT 생성(로그인성공시)
     public String create(User userEntity) {
-        // JWT 토크 만료 시간을 현재시각으로부터 1일뒤 만료되는 날짜로 계산
-        Date expiryDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        // JWT 토크 만료 시간을 현재시각으로부터
+        Date expiryDate = Date.from(Instant.now().plus(15, ChronoUnit.MINUTES));
 
         // JWT 토큰 생성
         return Jwts.builder()
