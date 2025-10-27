@@ -82,16 +82,14 @@ public class UserController {
         }
         User user = User.builder().email(userDTO.getEmail()).nickname(userDTO.getNickname())
                 .password(passwordEncoder.encode(userDTO.getPassword())).club(userDTO.getClub()).saveState(SaveState.Y)
-                .provider("local")
-                .build();
+                .provider("local").build();
 
         //System.out.println("************" +userDTO.getPassword());
 
         User registeredUser = userService.registerUser(user);
         UserResponseDto rsUserDTO = UserResponseDto.builder().email(registeredUser.getEmail())
                 .nickname(registeredUser.getNickname()).userId(registeredUser.getUserId())
-                .provider(registeredUser.getProvider())
-                .club(registeredUser.getClub()).build();
+                .provider(registeredUser.getProvider()).club(registeredUser.getClub()).build();
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(rsUserDTO));
 
@@ -116,8 +114,7 @@ public class UserController {
         }
 
         User user = User.builder().email(userDTO.getEmail()).nickname(userDTO.getNickname())
-                .password(userDTO.getPassword()).club(userDTO.getClub()).saveState(SaveState.Y)
-                .build();
+                .password(userDTO.getPassword()).club(userDTO.getClub()).saveState(SaveState.Y).build();
         String newPassword = userDTO.getNewpassword();
         String newPasswordConfirm = userDTO.getNewpasswordconfirm();
 
@@ -155,7 +152,7 @@ public class UserController {
             final String refreshToken = tokenProvider.createRefreshToken(user, expiryDate);
 
             Token tokenEntity = Token.builder().expiryDate(LocalDateTime.now().plusDays(7)).refreshToken(refreshToken)
-                    .user(user).build();
+                    .accessToken(token).user(user).build();
 
             userService.refreshTokenSave(tokenEntity);
 
@@ -173,14 +170,9 @@ public class UserController {
             //System.out.println("사용자 정보 imageUrl : " + imageUrl);
 
             // Access Token과 사용자 정보는 본문으로 반환
-            final UserResponseDto responseUserDTO = UserResponseDto.builder()
-                    .email(user.getEmail())
-                    .userId(user.getUserId())
-                    .nickname(user.getNickname())
-                    .provider(user.getProvider())
-                    .club(user.getClub())
-                    .imageUrl(imageUrl)
-                    .token(token) // 토큰
+            final UserResponseDto responseUserDTO = UserResponseDto.builder().email(user.getEmail())
+                    .userId(user.getUserId()).nickname(user.getNickname()).provider(user.getProvider())
+                    .club(user.getClub()).imageUrl(imageUrl).token(token) // 토큰
                     .build();
 
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(responseUserDTO));
@@ -279,14 +271,11 @@ public class UserController {
 
         // 쿠키에서 refreshToken 꺼내기
         String refreshToken = Arrays.stream(request.getCookies() != null ? request.getCookies() : new Cookie[]{})
-                .filter(cookie -> "refreshToken".equals(cookie.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
+                .filter(cookie -> "refreshToken".equals(cookie.getName())).map(Cookie::getValue).findFirst()
                 .orElse(null);
 
         if (refreshToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("Refresh Token이 없습니다."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("Refresh Token이 없습니다."));
         }
 
         // Refresh Token을 이용해 Access Token 재발급
@@ -298,8 +287,7 @@ public class UserController {
             expiredCookie.setPath("/");
             expiredCookie.setMaxAge(0);
             response.addCookie(expiredCookie);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail("유효하지 않은 리프레시 토큰입니다."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("유효하지 않은 리프레시 토큰입니다."));
         }
 
         return ResponseEntity.ok(ApiResponse.success(responseDto));
@@ -317,8 +305,8 @@ public class UserController {
         User updateUser = userService.passwordReset(userDTO);
 
         UserResponseDto rsUserDTO = UserResponseDto.builder().email(updateUser.getEmail())
-                .nickname(updateUser.getNickname()).userId(updateUser.getUserId())
-                .club(updateUser.getClub()).provider(updateUser.getProvider()).build();
+                .nickname(updateUser.getNickname()).userId(updateUser.getUserId()).club(updateUser.getClub())
+                .provider(updateUser.getProvider()).build();
 
         return ResponseEntity.ok(ApiResponse.success(rsUserDTO));
 

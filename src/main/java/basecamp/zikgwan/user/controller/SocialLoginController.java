@@ -53,7 +53,8 @@ public class SocialLoginController {
     @Value("${google.redirect.uri}")
     private String googleRedirectUri;
 
-    private final String FRONT_REDIRECT_URL = "http://localhost:5173/login";
+    @Value("${social.login.url}")
+    private String socialLoginURL;
 
     /**
      * 카카오 로그인 URL호출
@@ -298,7 +299,7 @@ public class SocialLoginController {
         String encodeEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
 
         // 프론트 리다이렉트 (쿼리스트링 닉네임 이메일 )
-        String redirectUrl = FRONT_REDIRECT_URL
+        String redirectUrl = socialLoginURL
                 + "?nickname=" + encodeNickname
                 + "&email=" + encodeEmail;
         response.sendRedirect(redirectUrl);
