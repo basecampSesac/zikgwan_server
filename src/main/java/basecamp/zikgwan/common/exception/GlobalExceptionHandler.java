@@ -13,13 +13,17 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import org.springframework.beans.factory.annotation.Value;
 /**
  * 글로벌 예외 처리
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // application.properties에서 social login URL 가져오기
+    @Value("${social.login.url}")
+    private String socialLoginUrl;
 
     // 잘못된 요청 파라미터나 비즈니스 로직 예외
     @ExceptionHandler(IllegalArgumentException.class)
@@ -30,7 +34,7 @@ public class GlobalExceptionHandler {
         String msg = e.getMessage();
         if (msg != null && msg.startsWith("SOCIAL_LOGIN_ERROR")) {
             String cleanMessage = msg.replaceFirst("SOCIAL_LOGIN_ERROR \\s*", "");
-            String redirectUrl = "http://localhost:5173/login?error="
+            String redirectUrl = socialLoginUrl+"?error="
                     + URLEncoder.encode(cleanMessage, StandardCharsets.UTF_8);
             HttpHeaders headers = new HttpHeaders();
             headers.add("Location", redirectUrl);
