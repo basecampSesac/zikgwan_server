@@ -258,10 +258,10 @@ public class UserService {
     public UserResponseDto refreshAccessToken(String refreshToken) {
 
         Token tokenEntity = tokenRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                .orElseThrow(() -> new IllegalArgumentException("토큰이 유효하지 않습니다. 다시 로그인해주세요"));
 
         if (tokenEntity.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token expired");
+            throw new IllegalArgumentException("Refresh token expired");
         }
 
         String newAccessToken = tokenProvider.create(tokenEntity.getUser());

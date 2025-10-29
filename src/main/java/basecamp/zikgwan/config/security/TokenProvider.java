@@ -4,6 +4,7 @@ package basecamp.zikgwan.config.security;
 import basecamp.zikgwan.config.jwt.JwtProperties;
 import basecamp.zikgwan.user.domain.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.time.Instant;
@@ -78,5 +79,21 @@ public class TokenProvider {
         Claims claims = Jwts.parser().setSigningKey(jwtProperties.getSecretKey()).parseClaimsJws(token).getBody();
 
         return Long.parseLong(claims.getSubject()); // subject 에 userId 넣어놨다고 가정
+    }
+
+    /**RefreshToken 유효성 검사 */
+    public boolean isRefreshTokenValid(String refreshToken) {
+        try {
+            Jwts.parser()
+                    .setSigningKey(jwtProperties.getSecretKey())
+                    .parseClaimsJws(refreshToken);
+            return true;
+        } catch (ExpiredJwtException e) {
+            log.warn("RefreshToken 만료: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.error("RefreshToken 유효성 검사 실패: {}", e.getMessage());
+            return false;
+        }
     }
 }
