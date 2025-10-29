@@ -81,14 +81,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Long userId = tokenProvider.getUserId(token);
                 log.info("토큰 user id : " + userId);
 
-                // AccessToken 일치 여부로 중복 로그인 감지
-                String currentAccessToken = tokenRepository.findByUserUserId(userId)
-                        .map(Token::getAccessToken)
+                // 중복 로그인 방지 — RefreshToken 기준으로 검사
+                String currentRefreshToken = tokenRepository.findByUserUserId(userId)
+                        .map(Token::getRefreshToken)
                         .orElse(null);
-                log.info("currentAccessToken: " + currentAccessToken);
+                log.info("currentRefreshToken: " + currentRefreshToken);
 
-                if (currentAccessToken == null || !currentAccessToken.equals(token)) {
-                    log.warn("사용자 ID {} 의 세션이 만료됨 (중복 로그인 감지)", userId);
+                if (currentRefreshToken == null || !tokenProvider.isRefreshTokenValid(currentRefreshToken)) {
+                    log.info("****************************************세션종료"+userId);
                     res.setContentType("application/json");
                     res.setCharacterEncoding("UTF-8");
                     ApiResponse<?> apiResponse = ApiResponse.fail("이미 다른 기기에서 로그인되어 세션이 종료되었습니다.");
