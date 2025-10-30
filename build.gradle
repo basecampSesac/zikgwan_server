@@ -36,6 +36,10 @@ dependencies {
 	// 레디스 추후 설정
 //	implementation 'org.springframework.session:spring-session-data-redis'
 
+	// 카페인 로컬 캐시 설정
+	implementation 'com.github.ben-manes.caffeine:caffeine'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
 	// 시큐리티 추후 설정
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
