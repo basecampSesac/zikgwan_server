@@ -1,5 +1,6 @@
 package basecamp.zikgwan.chat.controller;
 
+import basecamp.zikgwan.chat.dto.AllRoomDto;
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
 import basecamp.zikgwan.chat.dto.ChatUserDto;
@@ -50,9 +51,9 @@ public class ChatRoomController {
      */
     @LoginCheck
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<ChatRoomDto>>> getUserChatRooms(
+    public ResponseEntity<ApiResponse<List<AllRoomDto>>> getUserChatRooms(
             @AuthenticationPrincipal CustomUserPrincipal principal) {
-        List<ChatRoomDto> chatRoomDtos = chatService.getUserChatRooms(principal.getUserId());
+        List<AllRoomDto> chatRoomDtos = chatService.getUserChatRooms(principal.getUserId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)

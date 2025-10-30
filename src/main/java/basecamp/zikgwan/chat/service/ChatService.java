@@ -3,6 +3,7 @@ package basecamp.zikgwan.chat.service;
 import basecamp.zikgwan.chat.domain.Chat;
 import basecamp.zikgwan.chat.domain.ChatRoom;
 import basecamp.zikgwan.chat.domain.ChatRoomUser;
+import basecamp.zikgwan.chat.dto.AllRoomDto;
 import basecamp.zikgwan.chat.dto.ChatDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDetailDto;
 import basecamp.zikgwan.chat.dto.ChatRoomDto;
@@ -64,13 +65,31 @@ public class ChatService {
     }
 
     // 사용자의 모든 채팅방 목록 불러오기
-    public List<ChatRoomDto> getUserChatRooms(Long userId) {
+    public List<AllRoomDto> getUserChatRooms(Long userId) {
 
         List<ChatRoom> rooms = chatRoomUserRepository.findChatRoomsByUserId(userId);
 
         return rooms.stream()
-                .map(c -> ChatRoomDto.builder().roomId(c.getRoomId()).roomName(c.getRoomName()).type(c.getType())
-                        .typeId(c.getTypeId()).userCount(c.getUserCount()).build()).collect(Collectors.toList());
+                .map(c -> {
+                    Long leaderId = null;
+
+                    // RoomType이 C면 community에서 leaderId 조회
+                    if (c.getType() == RoomType.C) {
+                        leaderId = communityRepository.findById(c.getTypeId())
+                                .map(community -> community.getUser().getUserId())
+                                .orElse(null); // 혹시 존재하지 않을 경우 null 처리
+                    }
+
+                    return AllRoomDto.builder()
+                            .roomId(c.getRoomId())
+                            .roomName(c.getRoomName())
+                            .type(c.getType())
+                            .typeId(c.getTypeId())
+                            .userCount(c.getUserCount())
+                            .leaderId(leaderId)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     // 모임의 해당 채팅방 불러오기
