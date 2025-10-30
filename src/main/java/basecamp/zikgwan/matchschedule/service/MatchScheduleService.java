@@ -10,9 +10,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -38,6 +41,7 @@ public class MatchScheduleService {
 
     // 오늘 포함 ±7일 간의 경기 일정을 저장
     @Transactional
+    @CacheEvict(value = "matchSchedule", allEntries = true) // 저장과 동시에 캐시 삭제
     public List<KboResponseDto> saveScheduleRange(LocalDate today) {
         List<KboResponseDto> dtos = new ArrayList<>();
 
@@ -88,27 +92,55 @@ public class MatchScheduleService {
     }
 
     // 경기 일정 조회
+//    public List<KboResponseDto> getSchedule(KboRequestDto kboRequestDto) {
+//        LocalDate matchDate = LocalDate.of(kboRequestDto.getYear(), kboRequestDto.getMonth(), kboRequestDto.getDay());
+//
+//        List<MatchSchedule> matchSchedules = matchScheduleRepository.findAllByMatchDate(matchDate);
+//
+//        // 경기 일정이 없으면 빈 리스트 반환
+//        if (matchSchedules.isEmpty()) {
+//            return List.of(KboResponseDto.builder().build());
+//        }
+//
+//        return matchSchedules.stream()
+//                .map(m -> {
+//                    return KboResponseDto.builder()
+//                            .date(m.getMatchDate())
+//                            .home(TeamMapper.changeIdToName(m.getHomeTeam())) // 한글 이름으로 변환
+//                            .away(TeamMapper.changeIdToName(m.getAwayTeam()))
+//                            .place(m.getStadium())
+//                            .build();
+//                }).toList();
+//    }
+
+    // 경기 일정 조회 (Caffeine 캐시 적용)
+    @Cacheable(
+            cacheNames = "matchSchedule",
+            key = "#kboRequestDto.year + '-' + #kboRequestDto.month + '-' + #kboRequestDto.day"
+    )
     public List<KboResponseDto> getSchedule(KboRequestDto kboRequestDto) {
-        LocalDate matchDate = LocalDate.of(kboRequestDto.getYear(), kboRequestDto.getMonth(), kboRequestDto.getDay());
+
+        LocalDate matchDate = LocalDate.of(
+                kboRequestDto.getYear(),
+                kboRequestDto.getMonth(),
+                kboRequestDto.getDay()
+        );
 
         List<MatchSchedule> matchSchedules = matchScheduleRepository.findAllByMatchDate(matchDate);
 
-        // 경기 일정이 없으면 빈 리스트 반환
+        // 빈 리스트도 가능
         if (matchSchedules.isEmpty()) {
             return List.of(KboResponseDto.builder().build());
-
-//            throw new NoSuchElementException("경기 일정을 찾을 수 없습니다.");
         }
 
         return matchSchedules.stream()
-                .map(m -> {
-                    return KboResponseDto.builder()
-                            .date(m.getMatchDate())
-                            .home(TeamMapper.changeIdToName(m.getHomeTeam())) // 한글 이름으로 변환
-                            .away(TeamMapper.changeIdToName(m.getAwayTeam()))
-                            .place(m.getStadium())
-                            .build();
-                }).toList();
+                .map(m -> KboResponseDto.builder()
+                        .date(m.getMatchDate())
+                        .home(TeamMapper.changeIdToName(m.getHomeTeam()))
+                        .away(TeamMapper.changeIdToName(m.getAwayTeam()))
+                        .place(m.getStadium())
+                        .build())
+                .toList();
     }
 
     private List<KboResponseDto> convertToDto(List<Map<String, Object>> dayList, Map<String, Object> response) {
