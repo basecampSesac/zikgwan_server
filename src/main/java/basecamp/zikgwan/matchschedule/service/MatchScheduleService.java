@@ -9,9 +9,9 @@ import basecamp.zikgwan.matchschedule.repository.MatchScheduleRepository;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -159,6 +159,11 @@ public class MatchScheduleService {
     }
 
     private List<KboResponseDto> convertToDto(List<Map<String, Object>> dayList, Map<String, Object> response) {
+        if (dayList == null || dayList.isEmpty()) {
+            log.warn("dayList가 비어 있습니다. 응답 데이터: {}", response);
+            return Collections.emptyList();
+        }
+
         return dayList.stream()
                 .map(d -> {
                     // 문자열 날짜 → LocalDate 변환
@@ -175,6 +180,11 @@ public class MatchScheduleService {
     }
 
     private void saveDB(List<KboResponseDto> responseDtos) {
+        if (responseDtos == null || responseDtos.isEmpty()) {
+            log.info(" 저장할 경기 일정이 없습니다.");
+            return;
+        }
+
         List<MatchSchedule> matchSchedules = responseDtos.stream()
                 .map(r -> {
                     return matchScheduleRepository.findByMatchDateAndHomeTeamAndAwayTeam(
@@ -201,6 +211,11 @@ public class MatchScheduleService {
     // scoreboard에서 경기장(place) 매칭
     private String findPlace(Map<String, Object> response, Object home, Object away, int year) {
         List<Map<String, Object>> scoreboard = (List<Map<String, Object>>) response.get("scoreboard");
+
+        if (scoreboard == null || scoreboard.isEmpty()) {
+            log.warn("scoreboard 데이터가 없습니다. home={}, away={}, year={}", home, away, year);
+            return "미정";
+        }
 
         return scoreboard.stream()
                 .filter(sb -> {
