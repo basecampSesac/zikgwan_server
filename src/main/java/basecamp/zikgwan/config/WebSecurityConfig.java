@@ -60,7 +60,10 @@ public class WebSecurityConfig {
 
         // 모든 출처, 메소드, 헤더에 대해 허용하는 cors 설정
         config.setAllowCredentials(true); //쿠키전송 허용
-        config.setAllowedOriginPatterns(Arrays.asList("*"));
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "https://www.zigkwan.site",
+                "http://localhost:5173"
+        ));
         config.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT", "PATCH"));
         config.setAllowedHeaders((Arrays.asList("*")));
         config.setExposedHeaders(Arrays.asList("Authorization"));

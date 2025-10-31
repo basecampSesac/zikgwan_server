@@ -36,6 +36,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 인증 제외 경로
         String path = req.getRequestURI();
+
+        // Nginx proxy_pass로 인해 중복된 prefix 제거
+        if (path.startsWith("/api/api/")) {
+            path = path.replaceFirst("/api/api/", "/api/");
+        }
+
         if (path.startsWith("/api/user/login") || path.startsWith("/api/email/") || path.startsWith(
                 "/api/user/chknickname") || path.startsWith("/api/user/signup") || path.startsWith("/api/user/pwReset")
                 || path.startsWith("/api/user/refresh/") || path.startsWith("/api/match/")
@@ -88,7 +94,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.info("currentRefreshToken: " + currentRefreshToken);
 
                 if (currentRefreshToken == null || !tokenProvider.isRefreshTokenValid(currentRefreshToken)) {
-                    log.info("****************************************세션종료"+userId);
+                    log.info("****************************************세션종료" + userId);
                     res.setContentType("application/json");
                     res.setCharacterEncoding("UTF-8");
                     ApiResponse<?> apiResponse = ApiResponse.fail("이미 다른 기기에서 로그인되어 세션이 종료되었습니다.");

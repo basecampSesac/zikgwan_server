@@ -31,7 +31,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 	// p6spy 설정
-	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+//	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 
 	// 레디스 추후 설정
 //	implementation 'org.springframework.session:spring-session-data-redis'
