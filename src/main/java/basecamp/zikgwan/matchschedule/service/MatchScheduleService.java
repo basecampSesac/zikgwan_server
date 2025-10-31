@@ -1,5 +1,6 @@
 package basecamp.zikgwan.matchschedule.service;
 
+import basecamp.zikgwan.config.slack.SlackNotifier;
 import basecamp.zikgwan.matchschedule.MatchSchedule;
 import basecamp.zikgwan.matchschedule.dto.KboRequestDto;
 import basecamp.zikgwan.matchschedule.dto.KboResponseDto;
@@ -20,6 +21,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -32,6 +36,7 @@ public class MatchScheduleService {
 
     private final MatchScheduleRepository matchScheduleRepository;
     private final RestTemplate restTemplate;
+    private final SlackNotifier slackNotifier;
 
     @Value("${kbo.data.url}")
     private String url; // kbodate 요청용 url
@@ -42,7 +47,14 @@ public class MatchScheduleService {
     // 오늘 포함 ±7일 간의 경기 일정을 저장
     @Transactional
     @CacheEvict(value = "matchSchedule", allEntries = true) // 저장과 동시에 캐시 삭제
+    @Retryable(
+            value = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 10000) // 10초 간격 재시도
+    )
     public List<KboResponseDto> saveScheduleRange(LocalDate today) {
+
+        log.info("[스케줄러 시작] {} 기준 ±7일 경기 일정 저장 시작", today);
         List<KboResponseDto> dtos = new ArrayList<>();
 
         for (int i = -7; i <= 7; i++) {
@@ -56,6 +68,9 @@ public class MatchScheduleService {
 
             dtos.addAll(responseDtos);
         }
+
+        log.info("[스케줄러 완료] {} ~ {} 저장된 경기 수: {}",
+                today.minusDays(7), today.plusDays(7), dtos.size());
 
         return dtos;
     }
@@ -196,5 +211,18 @@ public class MatchScheduleService {
                 .map(sb -> (String) sb.get("place"))
                 .findFirst()
                 .orElse(null);
+    }
+
+    // 모든 재시도 실패 시 실행
+    @Recover
+    public List<KboResponseDto> recover(Exception e, LocalDate today) {
+        log.error("[최종 실패] 경기 일정 저장 3회 재시도 후 실패: {}", e.getMessage(), e);
+        slackNotifier.send("""
+                *[최종 실패] 경기 일정 저장 실패*
+                • 날짜: %s
+                • 예외: `%s`
+                """.formatted(today, e.getMessage()));
+
+        return List.of();
     }
 }
