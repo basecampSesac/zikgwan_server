@@ -56,6 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || (path.equals("/api/tickets/all") && req.getMethod().equals("GET"))    // 티켓 판매글 전체 조회
                 || (path.startsWith("/api/tickets") && req.getMethod().equals("GET") && !path.contains("/completed")
                 && !path.contains("/buyer")) || path.equals("/api/tickets/search")    // 티켓 판매글 필터 조회
+                || path.startsWith("/manage")
 
         ) {
             filterChain.doFilter(req, res);
