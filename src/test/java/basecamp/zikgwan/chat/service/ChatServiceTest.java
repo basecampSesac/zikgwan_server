@@ -98,7 +98,7 @@ class ChatServiceTest {
         userRepository.deleteAll();
     }
 
-    @DisplayName("동시에 100명 입장 시 userCount가 제한 인원(10명)을 초과할 수 있다.")
+    @DisplayName("동시에 100명 입장 시 제한 인원(10명)을 초과하지 않는다.")
     @Test
     void testConcurrentEnterCommunityRoom() throws InterruptedException {
         int totalUsers = 100;
@@ -110,7 +110,8 @@ class ChatServiceTest {
                 try {
                     // 일부 스레드에 랜덤 딜레이로 경쟁 유도
                     Thread.sleep((long) (Math.random() * 20));
-                    chatService.handleCommunityRoomEnter(chatRoom, user);
+//                    chatService.handleCommunityRoomEnter(chatRoom, user); // 락 적용 X
+                    chatService.handleCommunityRoomEnterWithLock(chatRoom, user);   // Redisson 분산 락 적용
                 } catch (Exception ignored) {
                 } finally {
                     latch.countDown();
