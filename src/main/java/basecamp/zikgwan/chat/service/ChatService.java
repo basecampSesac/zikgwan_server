@@ -34,11 +34,15 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -55,6 +59,7 @@ public class ChatService {
     private final ChatRoomUserRepository chatRoomUserRepository;
     private final SseService sseService;
     private final ImageService imageService;
+    private final RedissonClient redissonClient;
 
     // 모든 채팅방 목록 불러오기
     public List<ChatRoomDto> getChatRooms() {
@@ -272,7 +277,10 @@ public class ChatService {
             }
         } else {
             // 모임방
-            handleCommunityRoomEnter(targetRoom, user);
+//            handleCommunityRoomEnter(targetRoom, user);
+            // Redisson Lock 적용
+            handleCommunityRoomEnterWithLock(targetRoom, user);
+
         }
 
         // 참여자 기록 (중복 방지)
@@ -470,8 +478,38 @@ public class ChatService {
                 .toList();
     }
 
-    // 모임 채팅방 입장 처리
     @Transactional
+    public void handleCommunityRoomEnterWithLock(ChatRoom chatRoom, User user) {
+        // 채팅방을 기준으로 키 생성
+        String lockKey = "communityRoom:" + chatRoom.getRoomId();
+        RLock lock = redissonClient.getLock(lockKey);
+
+        boolean acquired = false;
+
+        try {
+            // 최대 5초 동안 lock 획득 대기, 획득 후 10초 뒤 자동 해제
+            acquired = lock.tryLock(5, 10, TimeUnit.SECONDS);
+
+            if (!acquired) {
+                log.warn("[LOCK] {} - 채팅방({}) lock 획득 실패", user.getNickname(), chatRoom.getRoomId());
+                return;
+            }
+
+            // 락을 획득한 상태에서 입장 처리
+            handleCommunityRoomEnter(chatRoom, user);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("[LOCK] 스레드 인터럽트 발생", e);
+        } finally {
+            if (acquired && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
+    // 모임 채팅방 입장 처리
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleCommunityRoomEnter(ChatRoom chatRoom, User user) {
         Community community = communityRepository.findById(chatRoom.getTypeId())
                 .orElseThrow(() -> new NoSuchElementException("모임이 존재하지 않습니다."));
