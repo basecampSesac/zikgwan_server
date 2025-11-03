@@ -128,10 +128,11 @@ public class MatchScheduleService {
 //                }).toList();
 //    }
 
-    // 경기 일정 조회 (Caffeine 캐시 적용)
+    // 경기 일정 조회 (캐시 적용)
     @Cacheable(
             cacheNames = "matchSchedule",
             key = "#kboRequestDto.year + '-' + #kboRequestDto.month + '-' + #kboRequestDto.day"
+            , unless = "#result == null || #result.isEmpty()" // 빈 데이터는 캐시하지 않음
     )
     public List<KboResponseDto> getSchedule(KboRequestDto kboRequestDto) {
 

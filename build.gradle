@@ -74,6 +74,16 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'software.amazon.awssdk:s3:2.25.40'
     implementation 'software.amazon.awssdk:auth:2.25.40'
+
+	//재시도 기능 추가
+	implementation 'org.springframework.retry:spring-retry'
+
+	// 엑츄에이터
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// 그라파나
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
 }
 
 tasks.named('test') {
