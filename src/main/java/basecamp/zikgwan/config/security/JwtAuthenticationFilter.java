@@ -52,6 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/socialLogin") //소셜로그인
                 || (path.startsWith("/api/images") && req.getMethod().equals("GET")// 이미지 GET 조회만 인증 제외
                 || path.startsWith("/images/")) // 이미지 조회 인증 제외
+                || path.startsWith("/api/notification/broadcast")
+                || path.startsWith("/api/test/notification/broadcast")
                 || (path.startsWith("/api/communities") && req.getMethod().equals("GET")) // 모임 GET 조회만 인증 제외
                 || (path.equals("/api/tickets/all") && req.getMethod().equals("GET"))    // 티켓 판매글 전체 조회
                 || (path.startsWith("/api/tickets") && req.getMethod().equals("GET") && !path.contains("/completed")
