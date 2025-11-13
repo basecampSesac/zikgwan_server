@@ -1,0 +1,27 @@
+package basecamp.zikgwan.user.dto;
+
+
+import basecamp.zikgwan.common.enums.SaveState;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+@Builder
+public class UserRequestDto {
+
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,6}$", message = "이메일 형식이 올바르지 않습니다.")
+    private String email;
+    private String nickname;
+
+    private String password;
+    private String club;
+    private SaveState saveState;
+
+    private String newpassword;
+    private String newpasswordconfirm;
+
+
+}

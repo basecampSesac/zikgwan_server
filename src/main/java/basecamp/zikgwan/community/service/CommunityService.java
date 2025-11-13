@@ -1,0 +1,273 @@
+package basecamp.zikgwan.community.service;
+
+import basecamp.zikgwan.chat.domain.ChatRoom;
+import basecamp.zikgwan.chat.domain.ChatRoomUser;
+import basecamp.zikgwan.chat.enums.RoomType;
+import basecamp.zikgwan.chat.repository.ChatRoomRepository;
+import basecamp.zikgwan.chat.repository.ChatRoomUserRepository;
+import basecamp.zikgwan.common.enums.SaveState;
+import basecamp.zikgwan.community.Community;
+import basecamp.zikgwan.community.dto.CommunityPageResponse;
+import basecamp.zikgwan.community.dto.CommunityRequest;
+import basecamp.zikgwan.community.dto.CommunityResponse;
+import basecamp.zikgwan.community.enums.CommunityState;
+import basecamp.zikgwan.community.enums.SortType;
+import basecamp.zikgwan.community.repository.CommunityRepository;
+import basecamp.zikgwan.image.enums.ImageType;
+import basecamp.zikgwan.image.service.ImageService;
+import basecamp.zikgwan.notification.Notification;
+import basecamp.zikgwan.notification.repository.NotificationRepository;
+import basecamp.zikgwan.user.domain.User;
+import basecamp.zikgwan.user.repository.UserRepository;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class CommunityService {
+    private final CommunityRepository communityRepository;
+    private final UserRepository userRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomUserRepository chatRoomUserRepository;
+    private final NotificationRepository notificationRepository;
+    private final ImageService imageService;
+
+
+    // 모임 등록
+    @Transactional
+    public CommunityResponse registerCommunity(Long userId, CommunityRequest request, MultipartFile imageFile)
+            throws IOException {
+        // 1. 모임장(User) 조회
+        User leader = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("모임장을 찾을 수 없습니다. ID: " + userId));
+
+        // 2. Community 엔티티 생성
+        Community community = Community.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .date(request.getDate())
+                .stadium(request.getStadium())
+                .home(request.getHome())
+                .away(request.getAway())
+                .memberCount(request.getMemberCount())
+                .user(leader)
+                .isFull(false)
+                .build();
+
+        // 3. Community 저장
+        Community savedCommunity = communityRepository.save(community);
+
+        String imageUrl = null;
+        if (imageFile != null && !imageFile.isEmpty()) {
+            imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
+            imageUrl = imageService.getImage(ImageType.C, savedCommunity.getCommunityId());
+            System.out.println("imageUrl : " + imageUrl);
+        }
+
+        // 4. 응답 DTO 생성
+        return CommunityResponse.from(savedCommunity, imageUrl);
+    }
+
+    @Transactional
+    public CommunityResponse updateCommunity(Long userId, Long communityId, CommunityRequest request,
+                                             MultipartFile imageFile) throws Exception {
+        // 1. 모임 조회
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다. ID: " + communityId));
+
+        // 2. 로그인 사용자 == 모임장 확인
+        if (!community.getUser().getUserId().equals(userId)) {
+            throw new IllegalAccessException("본인만 수정할 수 있습니다.");
+        }
+
+        // 3. 모임 정보 수정
+        community.updateCommunity(request); // Community 엔티티에 update 메서드 추가 필요
+
+        // dirtyChecking
+        Community savedCommunity = communityRepository.save(community);
+
+        // 4. 이미지 처리 (선택적으로 request에 MultipartFile이 있다면)
+        String imageUrl = null;
+        if (imageFile != null) {
+            imageService.uploadImage(ImageType.C, savedCommunity.getCommunityId(), imageFile, null);
+            imageUrl = imageService.getImage(ImageType.C, savedCommunity.getCommunityId());
+            System.out.println("imageUrl : " + imageUrl);
+        }
+
+        return CommunityResponse.from(savedCommunity, imageUrl);
+    }
+
+    //Soft Delete (saveState = N)
+    @Transactional
+    public void deleteCommunity(Long communityId, Long userId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다."));
+
+        if (!community.getUser().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("삭제 권한이 없습니다.");
+        }
+
+        ChatRoom chatRoom = chatRoomRepository.findFirstByTypeIdAndType(communityId, RoomType.C)
+                .orElseThrow(() -> new NoSuchElementException("채팅방을 찾을 수 없습니다."));
+
+        List<Notification> notifications = notificationRepository.findAllByRoomId(chatRoom.getRoomId());
+
+        List<ChatRoomUser> chatRoomUsers = chatRoomUserRepository.findAllByChatRoom(chatRoom);
+
+        // 채팅방에 대한 알림도 soft delete
+        if (!notifications.isEmpty()) {
+            notifications.forEach(n -> n.updateSaveState(SaveState.N));
+            notificationRepository.saveAll(notifications);
+        }
+
+        // 채팅 참여 유저는 hard delete
+        if (!chatRoomUsers.isEmpty()) {
+            chatRoomUserRepository.deleteAll(chatRoomUsers);
+        }
+
+        // 모임 삭제 시 연관된 채팅방도 비활성화
+        community.setSaveState(SaveState.N);
+        chatRoom.updateSaveState(SaveState.N);
+    }
+
+    // 모임 상태 변경 (ING ↔ END)
+    @Transactional
+    public CommunityState updateCommunityState(Long communityId, Long userId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new IllegalArgumentException("모임을 찾을 수 없습니다."));
+
+        if (!community.getUser().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("모임 상태를 변경할 권한이 없습니다.");
+        }
+
+        // 현재 상태 반전
+        if (community.getState() == CommunityState.ING) {
+            community.setState(CommunityState.END);
+        } else {
+            community.setState(CommunityState.ING);
+        }
+
+        // 변경된 상태 저장
+        Community update = communityRepository.save(community);
+
+        // 저장된 결과의 state 반환
+        return update.getState();
+    }
+
+    // 전체 모임 목록 조회
+    public CommunityPageResponse getAllCommunities(SortType sortType, Pageable pageable) {
+
+        Page<Community> communities = checkSortBy(sortType, pageable);
+
+        List<CommunityResponse> content = communities.stream()
+                .map(c -> {
+                    String imageUrl = imageService.getImage(ImageType.C, c.getCommunityId());
+                    return CommunityResponse.from(c, imageUrl);
+                })
+                .collect(Collectors.toList());
+
+        return CommunityPageResponse.builder()
+                .content(content)
+                .page(communities.getNumber())
+                .size(communities.getSize())
+                .totalElements(communities.getTotalElements())
+                .totalPages(communities.getTotalPages())
+                .last(communities.isLast())
+                .build();
+    }
+
+    // 특정 모임 상세 조회
+    public CommunityResponse getCommunityById(Long communityId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new NoSuchElementException("모임을 찾을 수 없습니다. ID: " + communityId));
+
+        String imageUrl = null;
+        imageUrl = imageService.getImage(ImageType.C, communityId);
+        System.out.println("모임상세조회 imageUrl : " + imageUrl);
+
+        return CommunityResponse.from(community, imageUrl);
+    }
+    // 제목, 모임 구단, 구장, 경기 날짜를 선택 입력으로 필터링하여 조회
+
+    public Page<CommunityResponse> searchCommunitiesByTitleAndTeamAndStadiumAndDate(String title, String team,
+                                                                                    String stadium,
+                                                                                    LocalDate date, int page,
+                                                                                    int size, SortType sortType) {
+
+        Sort sort = Sort.by("createdAt").descending(); // 기본 최신순
+        if (SortType.LEAST.equals(sortType)) {
+            sort = Sort.by("memberCount").ascending();
+        } else if (SortType.MOST.equals(sortType)) {
+            sort = Sort.by("memberCount").descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Community> communities;
+
+        // date null 체크
+        if (date != null) {
+            LocalDateTime datetime = date.atStartOfDay();
+
+            communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+                    team,
+                    stadium, datetime, datetime.plusDays(1), SaveState.Y, pageable);
+        } else {
+            communities = communityRepository.searchCommunitiesByTitleAndTeamAndStadiumAndDate(title,
+                    team,
+                    stadium, null, null, SaveState.Y, pageable);
+        }
+
+        return communities
+                .map(c -> {
+                    String imageUrl = imageService.getImage(ImageType.C, c.getCommunityId());
+                    return CommunityResponse.from(c, imageUrl);
+                });
+    }
+
+    // 정렬 조건 확인 및 정렬
+    private Page<Community> checkSortBy(SortType sortType, Pageable pageable) {
+        Page<Community> communities;
+
+        // 최신순
+        if (sortType == null || sortType.equals(SortType.RECENT)) {
+            communities = communityRepository.findAllBySaveStateOrderByCreatedAtDesc(SaveState.Y, pageable);
+
+            // 인원 많은 순
+        } else if (sortType.equals(SortType.MOST)) {
+            communities = communityRepository.findAllBySaveStateOrderByMemberCountDesc(SaveState.Y, pageable);
+
+            // 인원 적은 순
+        } else {
+            communities = communityRepository.findAllBySaveStateOrderByMemberCountAsc(SaveState.Y, pageable);
+        }
+        return communities;
+    }
+
+    // 모집 마감 직전 모임 4개 조회
+    public List<CommunityResponse> getClosingSoonCommunities() {
+        // 4개 제한
+        PageRequest limit = PageRequest.of(0, 4);
+
+        List<Community> communities = communityRepository.findNearlyFullCommunities(limit);
+
+        return communities.stream()
+                .map(c -> {
+                    String imageUrl = imageService.getImage(ImageType.C, c.getCommunityId());
+                    return CommunityResponse.from(c, imageUrl);
+                })
+                .collect(Collectors.toList());
+    }
+}
